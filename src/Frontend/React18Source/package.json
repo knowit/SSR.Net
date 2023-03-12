@@ -1,0 +1,13 @@
+{
+  "dependencies": {
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
+  },
+  "scripts": {
+    "build-dotnetframework": "esbuild ./src/app.tsx --bundle --platform=browser --outfile=../../SSR.Net.DotNetFramework/Frontend/react18example.js",
+    "build-dotnet6": "esbuild ./src/app.tsx --bundle --outfile=../../SSR.Net.DotNet6/wwwroot/react18example.js"
+  },
+  "devDependencies": {
+    "esbuild": "^0.17.7"
+  }
+}

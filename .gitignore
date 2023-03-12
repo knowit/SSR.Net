@@ -1,0 +1,6 @@
+**/packages/*
+**/.vs/*
+**/node_modules/*
+**/bin/*
+**/obj/*
+*.user.csproj

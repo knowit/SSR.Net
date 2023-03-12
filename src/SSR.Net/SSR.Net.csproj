@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <PackageId>SSR.Net</PackageId>
+    <Version>0.9.0</Version>
+    <Authors>Øivind Hagen</Authors>
+    <Company>Knowit AS</Company>
+    <Product>SSR.Net</Product>
+    <Title>SSR.Net</Title>
+    <PackageDescription>A package that performs Server Sider Rendering (SSR) for React17, React18 and Vue 3 using the JavaScriptEngineSwitcher.Core package. 
+    Can be extended to support other frameworks and versions. </PackageDescription>
+    <PackageTags>SSR; React; Vue; Server Side Rendering; JavaScriptEngineSwitcher; nodejs; javascript; js;</PackageTags>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="JavaScriptEngineSwitcher.Core" Version="3.19.0" />
+  </ItemGroup>
+
+</Project>

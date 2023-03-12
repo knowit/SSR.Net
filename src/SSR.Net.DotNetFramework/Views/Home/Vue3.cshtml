@@ -1,0 +1,21 @@
+﻿@{
+    Layout = null;
+    var component = Vue3SSR.Render("Components.Example", new
+    {
+        title = "Vue 3 with SSR"
+    });
+}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vue 3 with SSR</title>
+    @Scripts.Render("/Frontend/vue3example.js")
+</head>
+<body>
+    @Html.Raw(component.Html)
+    <script>@Html.Raw(component.InitScript)</script>
+</body>
+</html>

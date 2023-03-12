@@ -1,0 +1,13 @@
+{
+  "dependencies": {
+    "vue": "^3.2.47"
+  },
+  "scripts": {
+    "build-dotnetframework": "node ./BuildDotNetFramework.js",
+    "build-dotnet6": "node ./BuildDotNet6.js"
+  },
+  "devDependencies": {
+    "esbuild": "^0.17.7",
+    "esbuild-plugin-vue3": "^0.3.2"
+  }
+}

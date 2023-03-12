@@ -1,0 +1,19 @@
+﻿@using SSR.Net.Models;
+@model RenderedComponent
+@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vue 3 with SSR</title>
+    <script src="~/vue3example.js"></script>
+</head>
+<body>
+    @Html.Raw(Model.Html)
+    <script>@Html.Raw(Model.InitScript)</script>
+</body>
+</html>

@@ -1,0 +1,31 @@
+﻿@{
+    Layout = null;
+    var component = React17SSR.Render("Components.FrontPage", new
+    {
+        header = "React 17 with SSR",
+        links = new[]{
+            new {
+                text= "Google.com",
+                href="https://www.google.com"
+            },
+            new {
+                text = "Hacker news",
+                href="https://news.ycombinator.org"
+            }
+        }
+    });
+}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>React 17 with SSR</title>
+    @Scripts.Render("/Frontend/react17example.js")
+</head>
+<body>
+    @Html.Raw(component.Html)
+    <script>@Html.Raw(component.InitScript)</script>
+</body>
+</html>
