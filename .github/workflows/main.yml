@@ -12,7 +12,7 @@ jobs:
 
     env:
       BUILD_CONFIG: 'Release'
-      SOLUTION: 'SSR.Net.sln'
+      SOLUTION: 'src/SSR.Net.sln'
       BUILD_VERSION: "${{ github.event.inputs.PackageVersion }}" 
 
     runs-on: ubuntu-latest
