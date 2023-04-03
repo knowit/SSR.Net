@@ -8051,7 +8051,7 @@ Component that was made reactive: `, type);
   var { isVNode: isVNode2 } = ssrUtils;
   initDirectivesForSSR();
 
-  // sfc-script:D:\Src\Local\SSR.Net\src\Frontend\Vue3Source\src\Components\Example.vue?type=script
+  // sfc-script:D:\Src\KnowitGitHub\SSR.Net\src\Frontend\Vue3Source\src\Components\Example.vue?type=script
   var Example_default = defineComponent({
     name: "Example",
     props: {
@@ -8062,7 +8062,7 @@ Component that was made reactive: `, type);
     }
   });
 
-  // sfc-template:D:\Src\Local\SSR.Net\src\Frontend\Vue3Source\src\Components\Example.vue?type=template
+  // sfc-template:D:\Src\KnowitGitHub\SSR.Net\src\Frontend\Vue3Source\src\Components\Example.vue?type=template
   function render(_ctx, _cache, $props, $setup, $data, $options) {
     return openBlock(), createElementBlock(
       Fragment,
@@ -8102,4 +8102,5 @@ Component that was made reactive: `, type);
   globalThis.Components = { Example: Example_default2 };
   globalThis.createSSRApp = createSSRApp;
   globalThis.renderToString = renderToString;
+  globalThis.createApp = createApp;
 })();

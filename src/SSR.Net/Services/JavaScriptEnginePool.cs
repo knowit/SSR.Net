@@ -13,8 +13,9 @@ namespace SSR.Net.Services
         protected List<string> Scripts;
         protected List<JavaScriptEngine> Engines = new List<JavaScriptEngine>();
         protected JsEngineSwitcher JsEngineSwitcher;
-        protected int BundleNumber = 0;
         protected int GarbageCollectionInterval = 20;
+        protected int ReconfigureTimeoutMs = 2000;
+        protected int BundleNumber = 0;
         protected int MaxEngines = 25;
         protected int MaxUsages = 100;
         protected int MinEngines = 5;
@@ -129,9 +130,14 @@ namespace SSR.Net.Services
                 Scripts = builtConfig.Scripts;
                 StandbyEngineCount = builtConfig.StandbyEngineCount;
                 GarbageCollectionInterval = builtConfig.GarbageCollectionInterval;
+                ReconfigureTimeoutMs = builtConfig.ReconfigureTimeoutMs;
                 BundleNumber++;
                 for (int i = 0; i < MinEngines; ++i)
                     AddNewJsEngine();
+                var startWaitForInit = DateTime.Now;
+                while (!Engines.Any(e => e.GetState().Equals(JavaScriptEngineState.Ready))
+                    && (DateTime.Now - startWaitForInit).TotalMilliseconds < ReconfigureTimeoutMs)
+                    Thread.Sleep(10);
                 IsStarted = true;
             }
             return this;

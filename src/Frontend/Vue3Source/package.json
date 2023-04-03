@@ -7,7 +7,7 @@
     "build-dotnet6": "node ./BuildDotNet6.js"
   },
   "devDependencies": {
-    "esbuild": "^0.17.7",
+    "esbuild": "^0.17.15",
     "esbuild-plugin-vue3": "^0.3.2"
   }
 }

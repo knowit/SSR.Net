@@ -11,6 +11,7 @@ namespace SSR.Net.Services
         public int MaxUsages { get; private set; } = 100;
         public int GarbageCollectionInterval { get; private set; } = 20;
         public int StandbyEngineCount { get; private set; } = 3;
+        public int ReconfigureTimeoutMs { get; private set; } = 2000;
 
         public JavaScriptEnginePoolConfig AddScriptFile(string path)
         {
@@ -66,6 +67,8 @@ namespace SSR.Net.Services
                 throw new InvalidOperationException($"{nameof(GarbageCollectionInterval)} must be a positive integer, but is set to {GarbageCollectionInterval}");
             if (MaxUsages <= 0)
                 throw new InvalidOperationException($"{nameof(MaxUsages)} must be a positive integer, but is set to {MaxUsages}");
+            if (ReconfigureTimeoutMs  <= 0)
+                throw new InvalidOperationException($"{nameof(ReconfigureTimeoutMs)} must be zero or higher, but is set to {ReconfigureTimeoutMs}");
         }
     }
 }

@@ -13,7 +13,7 @@ namespace SSR.Net.Services
         private const string CSRHtml = "<div id=\"{0}\"></div>";//id
         private const string SSREngineScript = "renderToString(createSSRApp({0}, {1})).then(html => {2}= '<div id={3}>' + html + '</div>').catch(err => {2}= 'Error ' + err)";//componentName, propsAsJson, resultVariableName, containerId
         private const string ClientHydrateScript = "createSSRApp({0}, {1}).mount({2})";//componentName, propsAsJson, id
-        private const string ClientRenderScript = "ReactDOMClient.createRoot({0}).render(React.createElement({1},{2}))";//id, componentName, propsAsJson
+        private const string ClientRenderScript = "createApp({0}, {1}).mount({2})";//id, componentName, propsAsJson
 
         public RenderedComponent RenderComponent(string componentName,
                                                  string propsAsJson,
@@ -23,13 +23,11 @@ namespace SSR.Net.Services
             var result = new RenderedComponent();
             var id = CreateId();
             var variableId = CreateId();
-            result.Html = _javaScriptEnginePool.EvaluateJsAsync(string.Format(SSREngineScript, componentName, propsAsJson, variableId, id), variableId);
+            var html = _javaScriptEnginePool.EvaluateJsAsync(string.Format(SSREngineScript, componentName, propsAsJson, variableId, id), variableId);
+            if (html is null)
+                return RenderComponentCSR(componentName, propsAsJson);
+            result.Html = html;
             result.InitScript = string.Format(ClientHydrateScript, componentName, propsAsJson, id);
-            //var script = string.Format(SSREngineScript, componentName, propsAsJson);
-            //result.Html = string.Format(SSRHtml, id, _javaScriptEnginePool.EvaluateJs(script, waitForEngineTimeoutMs, fallbackToClientSideRender));
-            //result.InitScript = string.Format(ClientHydrateScript, id, componentName, propsAsJson);
-            //if (result.Html is null)
-            //    return RenderComponentCSR(componentName, propsAsJson);
             return result;
         }
 
@@ -42,7 +40,7 @@ namespace SSR.Net.Services
             return new RenderedComponent
             {
                 Html = string.Format(CSRHtml, id),
-                InitScript = string.Format(ClientRenderScript, id, componentName, propsAsJson)
+                InitScript = string.Format(ClientRenderScript, componentName, propsAsJson, id)
             };
         }
     }

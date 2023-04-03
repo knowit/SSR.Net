@@ -24,10 +24,11 @@ namespace SSR.Net.Services
             var result = new RenderedComponent();
             var id = CreateId();
             var script = string.Format(SSREngineScript, componentName, propsAsJson);
-            result.Html = string.Format(SSRHtml, id, _javaScriptEnginePool.EvaluateJs(script, waitForEngineTimeoutMs, fallbackToClientSideRender));
-            result.InitScript = string.Format(ClientHydrateScript, componentName, propsAsJson, id);
-            if (result.Html is null)
+            var html = _javaScriptEnginePool.EvaluateJs(script, waitForEngineTimeoutMs, fallbackToClientSideRender);
+            if (html is null)
                 return RenderComponentCSR(componentName, propsAsJson);
+            result.Html = string.Format(SSRHtml, id, html);
+            result.InitScript = string.Format(ClientHydrateScript, componentName, propsAsJson, id);
             return result;
         }
 
