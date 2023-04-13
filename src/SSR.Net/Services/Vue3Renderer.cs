@@ -18,12 +18,22 @@ namespace SSR.Net.Services
         public RenderedComponent RenderComponent(string componentName,
                                                  string propsAsJson,
                                                  int waitForEngineTimeoutMs = 50,
-                                                 bool fallbackToClientSideRender = true)
+                                                 bool fallbackToClientSideRender = true,
+                                                 int asyncTimeoutMs = 200)
         {
             var result = new RenderedComponent();
             var id = CreateId();
             var variableId = CreateId();
-            var html = _javaScriptEnginePool.EvaluateJsAsync(string.Format(SSREngineScript, componentName, propsAsJson, variableId, id), variableId);
+            string html = null;
+            try
+            {
+                html = _javaScriptEnginePool.EvaluateJsAsync(string.Format(SSREngineScript, componentName, propsAsJson, variableId, id), variableId, asyncTimeoutMs, waitForEngineTimeoutMs, fallbackToClientSideRender);
+            }
+            catch (Exception ex)
+            {
+                if (!fallbackToClientSideRender)
+                    throw ex;
+            }
             if (html is null)
                 return RenderComponentCSR(componentName, propsAsJson);
             result.Html = html;
