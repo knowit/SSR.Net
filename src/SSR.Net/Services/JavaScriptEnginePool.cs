@@ -67,6 +67,7 @@ namespace SSR.Net.Services
                 lock (Lock)
                 {
                     RemoveDepletedEngines();
+                    ThrowExceptionIfInitializationFailed();
                     RefillToMinEngines();
                     EnsureEnoughStandbyEngines();
                     var engine = TryToFindReadyEngine();
@@ -135,12 +136,25 @@ namespace SSR.Net.Services
                 for (int i = 0; i < MinEngines; ++i)
                     AddNewJsEngine();
                 var startWaitForInit = DateTime.Now;
-                while (!Engines.Any(e => e.GetState().Equals(JavaScriptEngineState.Ready))
-                    && (DateTime.Now - startWaitForInit).TotalMilliseconds < ReconfigureTimeoutMs)
+                while (IsInitializingAllEngines() && WaitingForInitializationNotTimedOut(startWaitForInit))
                     Thread.Sleep(10);
+                ThrowExceptionIfInitializationFailed();
                 IsStarted = true;
             }
             return this;
+        }
+
+        private bool WaitingForInitializationNotTimedOut(DateTime startWaitForInit) =>
+            (DateTime.Now - startWaitForInit).TotalMilliseconds < ReconfigureTimeoutMs;
+
+        private bool IsInitializingAllEngines() =>
+            !Engines.Any(e => new[] { JavaScriptEngineState.Ready, JavaScriptEngineState.InitializationFailed }.Contains(e.GetState()));
+
+        private void ThrowExceptionIfInitializationFailed()
+        {
+            if (Engines.FirstOrDefault(e => e.GetState().Equals(JavaScriptEngineState.InitializationFailed)) is JavaScriptEngine jsEngine
+                && jsEngine.InitializationException != null)
+                throw jsEngine.InitializationException;
         }
 
         protected virtual void AddNewJsEngine() =>
@@ -151,20 +165,22 @@ namespace SSR.Net.Services
                 return jsEngine;
             }, MaxUsages, GarbageCollectionInterval, BundleNumber));
 
-        public virtual JavaScriptEnginePoolStats GetStats()
-        {
-            var result = new JavaScriptEnginePoolStats();
-            result.EngineCount = Engines.Count;
-            foreach (var engine in Engines)
-                result.EngineStats.Add(new JavaScriptEngineStats
-                {
-                    BundleNumber = engine.BundleNumber,
-                    InitializedTime = engine.InitializedTime,
-                    InstantiatedTime = engine.InstantiationTime,
-                    State = engine.GetState(),
-                    UsageCount = engine.UsageCount
-                });
-            return result;
-        }
+        public virtual JavaScriptEnginePoolStats GetStats() =>
+            new JavaScriptEnginePoolStats
+            {
+                EngineCount = Engines.Count,
+                EngineStats = Engines
+                    .Select(engine =>
+                        new JavaScriptEngineStats
+                        {
+                            BundleNumber = engine.BundleNumber,
+                            InitializedTime = engine.InitializedTime,
+                            InstantiatedTime = engine.InstantiationTime,
+                            State = engine.GetState(),
+                            InitializationException = engine.InitializationException,
+                            UsageCount = engine.UsageCount
+                        })
+                    .ToList()
+            };
     }
 }

@@ -3,6 +3,7 @@
     public enum JavaScriptEngineState
     {
         Uninitialized,
+        InitializationFailed,
         Ready,
         Leased,
         RequiresGarbageCollection,

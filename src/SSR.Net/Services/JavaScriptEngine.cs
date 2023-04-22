@@ -19,6 +19,7 @@ namespace SSR.Net.Services
         protected Task _initializer;
         public DateTime InstantiationTime { get; protected set; }
         public DateTime InitializedTime { get; protected set; }
+        public Exception InitializationException { get; protected set; }
 
         public JavaScriptEngine(Func<IJsEngine> createEngine, int maxUsages, int garbageCollectionInterval, int bundleNumber)
         {
@@ -29,9 +30,19 @@ namespace SSR.Net.Services
             _state = JavaScriptEngineState.Uninitialized;
             _initializer = Task.Run(() =>
             {
-                _engine = createEngine();
-                _state = JavaScriptEngineState.Ready;
-                InitializedTime = DateTime.UtcNow;
+                try
+                {
+                    _engine = createEngine();
+                    _state = JavaScriptEngineState.Ready;
+                    InitializedTime = DateTime.UtcNow;
+                }
+                catch (Exception ex)
+                {
+                    _state = JavaScriptEngineState.InitializationFailed;
+                    InitializationException = ex;
+                    InitializedTime = DateTime.UtcNow;
+                    throw;
+                }
             });
         }
 

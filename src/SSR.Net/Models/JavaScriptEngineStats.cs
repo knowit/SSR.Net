@@ -9,5 +9,6 @@ namespace SSR.Net.Models
         public DateTime InitializedTime { get; set; }
         public int UsageCount { get; set; }
         public int BundleNumber { get; set; }
+        public Exception InitializationException { get; internal set; }
     }
 }
