@@ -30,19 +30,24 @@ namespace SSR.Net.Services
             {
                 html = _javaScriptEnginePool.EvaluateJs(script, waitForEngineTimeoutMs);
             }
-            catch (Exception ex)
-            {
+            catch (Exception ex) {
                 if (!fallbackToClientSideRender)
                     throw ex;
-                if (ex is AcquireJavaScriptEngineTimeoutException timeoutException)
-                    result.TimeoutException = timeoutException;
-                else
-                    result.RenderException = ex;
+                return FallbackToCSRWithException(componentName, propsAsJson, ex);
             }
             if (html is null)
                 return RenderComponentCSR(componentName, propsAsJson);
             result.Html = string.Format(SSRHtml, id, html);
             result.InitScript = string.Format(ClientHydrateScript, id, componentName, propsAsJson);
+            return result;
+        }
+
+        private RenderedComponent FallbackToCSRWithException(string componentName, string propsAsJson, Exception ex) {
+            var result = RenderComponentCSR(componentName, propsAsJson);
+            if (ex is AcquireJavaScriptEngineTimeoutException timeoutException)
+                result.TimeoutException = timeoutException;
+            else
+                result.RenderException = ex;
             return result;
         }
 

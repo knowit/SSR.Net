@@ -58,8 +58,7 @@ namespace SSR.Net.Tester
             {
                 try
                 {
-                    var res = _jsep.EvaluateJs(JS.Text, returnNullInsteadOfException: true);
-
+                    var res = _jsep.EvaluateJs(JS.Text);
                 }
                 catch (Exception ex)
                 { }
