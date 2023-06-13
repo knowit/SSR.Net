@@ -2,7 +2,8 @@
 SSR.Net
 ============
 
-SSR.Net makes it possible to server side render components in React 17, React 18 and Vue 3. It is open for extension, and can support other frameworks. It aims to be a performant, minimalistic way to support SSR in .Net.
+SSR.Net makes it possible to server side render components in React 17, React 18 and Vue 3. It is open for extension, and can support other frameworks. It aims to be a performant, minimalistic way to support SSR in .Net. 
+It is based on many of the ideas in ReactJS.Net: https://github.com/reactjs/React.NET.
 This README is not finished yet.
 
 ## Installation

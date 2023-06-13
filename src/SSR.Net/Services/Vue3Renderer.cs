@@ -1,4 +1,5 @@
-﻿using SSR.Net.Models;
+﻿using SSR.Net.Exceptions;
+using SSR.Net.Models;
 using System;
 
 namespace SSR.Net.Services
@@ -27,12 +28,16 @@ namespace SSR.Net.Services
             string html = null;
             try
             {
-                html = _javaScriptEnginePool.EvaluateJsAsync(string.Format(SSREngineScript, componentName, propsAsJson, variableId, id), variableId, asyncTimeoutMs, waitForEngineTimeoutMs, fallbackToClientSideRender);
+                html = _javaScriptEnginePool.EvaluateJsAsync(string.Format(SSREngineScript, componentName, propsAsJson, variableId, id), variableId, asyncTimeoutMs, waitForEngineTimeoutMs);
             }
             catch (Exception ex)
             {
                 if (!fallbackToClientSideRender)
                     throw ex;
+                if (ex is AcquireJavaScriptEngineTimeoutException timeoutException)
+                    result.TimeoutException = timeoutException;
+                else
+                    result.RenderException = ex;
             }
             if (html is null)
                 return RenderComponentCSR(componentName, propsAsJson);

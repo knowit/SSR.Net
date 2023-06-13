@@ -1,4 +1,5 @@
 ﻿using JavaScriptEngineSwitcher.Core;
+using SSR.Net.Exceptions;
 using SSR.Net.Models;
 using System;
 using System.Collections.Generic;
@@ -31,31 +32,21 @@ namespace SSR.Net.Services
             Reconfigure(config);
         }
 
-        public virtual string EvaluateJs(string js,
-                                         int timeoutMs = 200,
-                                         bool returnNullInsteadOfException = false)
-        {
+        public virtual string EvaluateJs(string js, int timeoutMs = 200) {
             var engine = GetEngine(timeoutMs);
-            if (!(engine is null))
-                return engine.EvaluateAndRelease(js);
-            if (returnNullInsteadOfException)
-                return null;
-            throw new Exception($"Could not get engine withing {timeoutMs}ms");
+            if (engine is null)
+                throw new AcquireJavaScriptEngineTimeoutException($"Could not acquire engine within {timeoutMs}ms");
+            return engine.EvaluateAndRelease(js);
         }
 
-        public virtual string EvaluateJsAsync(string js, string resultVariableName, int asyncTimeoutMs = 200, int timeoutMs = 200, bool returnNullInsteadOfException = false)
+        public virtual string EvaluateJsAsync(string js, string resultVariableName, int asyncTimeoutMs = 200, int timeoutMs = 200)
         {
             var engine = GetEngine(timeoutMs);
             if (engine is null)
-            {
-                if (returnNullInsteadOfException)
-                    return null;
-                throw new Exception($"Could not get engine withing {timeoutMs}ms");
-            }
+                throw new AcquireJavaScriptEngineTimeoutException($"Could not acquire engine within {timeoutMs}ms");
             var result = engine.EvaluateAsyncAndRelease(js, resultVariableName, asyncTimeoutMs);
             if (!string.IsNullOrEmpty(result))
                 return result;
-            if (returnNullInsteadOfException) return null;
             throw new Exception($"Could not evaluate async result within {asyncTimeoutMs}ms");
         }
 
