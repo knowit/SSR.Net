@@ -110,7 +110,7 @@ We run this through npm:
 npm run build-dotnet6
 ```
 
-The resulting js bundle is build to the wwwroot folder in the DotNet6 project as react18example.js: https://github.com/knowit/SSR.Net/tree/main/src/SSR.Net.DotNet6/wwwroot
+The resulting js bundle is built to the wwwroot folder in the DotNet6 project as react18example.js: https://github.com/knowit/SSR.Net/tree/main/src/SSR.Net.DotNet6/wwwroot
 
 ### Set up a web project
 
@@ -142,7 +142,7 @@ namespace SSR.Net.DotNet6.Services
 
 The code above adds both a server side polyfill named React18TextEncoderPolyfill.js (React 18 needs this, and it's missing in the Java Script Engine), and the bundle we created in [Building a JavaScript bundle fit for SSR](#Building-a-JavaScript-bundle-fit-for-SSR), react18example.js. These script files will be run on each server side JavaScript engine during initialization. This means that each JavaScript engine on the server side will be able to run React, ReactDOMServer, ReactDOMClient and access our FrontPage component through the global variable Components.
 
-We use the V8 JavaScript engine in this example. This, and the scripts, is configured in a JavaScriptEnginePool. This pool will manage JavaScript engines, create new ones proactively, dispose exhausted engines and be a broker for the actual rendering commands. 
+We use the V8 JavaScript engine in this example. This, and the scripts, is configured in a JavaScriptEnginePool. This pool will manage JavaScript engines, create new ones proactively, dispose exhausted engines and forward the rendering calls to the JavaScript engines. 
 
 To make this work, we have to reference some packages in our web project:
 https://github.com/knowit/SSR.Net/blob/main/src/SSR.Net.DotNet6/SSR.Net.DotNet6.csproj
@@ -227,7 +227,7 @@ The view is kept very simple (https://github.com/knowit/SSR.Net/blob/main/src/SS
 </html>
 ```
 
-Here we use RenderedComponent as our model. We set Layout to null, because we only use the markup in this file. We include the react18example.js script that we created in [Building a JavaScript bundle fit for SSR](#Building-a-JavaScript-bundle-fit-for-SSR) in a <script> tag in the <head> tag. 
+Here we use a RenderedComponent as our model. We set Layout to null, because we only use the markup in this file. We include the react18example.js script that we created in [Building a JavaScript bundle fit for SSR](#Building-a-JavaScript-bundle-fit-for-SSR) in a <script> tag in the <head> tag. 
 
 Inside the <body> tag, there are just two lines. The first one takes the HTML from our RenderedComponent and renders it as a raw string in the view. The second one takes the initialization script and renders it as a raw string inside a <script> tag. 
 
@@ -237,7 +237,7 @@ When running the solution and visiting the React 18 view, we see that it's worki
 
 ![React 18 in the browser](./React18InBrowser.png)
 
-If we view the source, we see that we get markup from the server and not just an empty <div>.  We also see the initialization script, which instructs React to latch on to the DOM in the <div> with the markup by calling ReactDOMClient.hydrateRoot:
+If we view the source, we see that we get markup from the server and not just an empty <div>.  We also see the initialization script, which instructs React to latch on to the <div> with the markup by calling ReactDOMClient.hydrateRoot:
 
 ![React 18 view source](./React18ViewSource.png)
 
@@ -249,7 +249,7 @@ If the rendering was done without SSR, then the div would be empty and the initi
 In order to be ready to render components quickly, SSR.Net ensures that a configurable number of JavaScript engines are initialized with a given JavaScript bundle. This is done when instantiating a new JavaScriptEnginePool. There are several thresholds controlling this:
 * Minimum engines: When starting or reconfiguring SSR.Net, it will make sure there are at least this number of engines in the engine pool.
 * Maximum engines: The number of engines in the engine pool will never exceed this threshold.
-* Standby engines: The number of unoccupied (spare) engines in the pool. 
+* Standby engines: The number of vacant engines the pool should have (while not exceeding the maximum number of engines). 
 * Maximum engine usages: A given engine can be used this number of times before it gets disposed of.
 
 There are methods to configure this when initializing the JavaScriptEnginePool:
@@ -272,7 +272,7 @@ Example:
 Let's say we have configured a minimum of 5 engines, a maximum of 25 engines and 3 engines on standby. Before any requests come in, there will be 5 vacant engines. 
 Then 3 requests come in at the same time, occupying 3 engines. SSR.Net will see that there are only 2 engines on standby, and will initialize another engine to comply with the "3 engines on standby" requirement. 
 
-Traffic increases drastically, and at some point 23 engines are occupied concurrently. SSR.Net will ensure that there are 25 engines initialized, but will not exceed this threshold, to comply with the "maximum of 25 engines" requirement.
+Traffic increases drastically, and at some point 23 engines are occupied concurrently. SSR.Net will ensure that there are 25 engines initialized, but will not exceed this threshold. This is to comply with the "maximum of 25 engines" requirement.
 
 Then, there are only 2-3 concurrent requests for a long time. The engines will eventually be exhausted and disposed of, and the number of engines declines. At some point, there are only 5 engines left. The next time an engine gets exhausted, SSR.Net will dispose of it and see that there are only 4 engines left. Then SSR.Net will initialize a new engine to comply with the "minimum of 5 engines" requirement.
 
@@ -286,7 +286,7 @@ if (typeof window !== 'undefined')
 ```
 * Global variables must not be used (except the ones described above for exposing objects to SSR.Net). Each JavaScript Engine is used multiple times, so global variables will cause state to be shared between requests, meaning data can leak from one user to another.
 * Some 3rd party packages may fail, if they use the window object or global variables.
-* SSR in React won't run useEffect hooks. So using the window object in a useEffect is safe. Also, if you have code that requires the window object and that doesn't contain markup that you need served from the server side, then you can defer including it to after the first contentful paint:
+* SSR in React won't run useEffect hooks. So using the window object in a useEffect is safe. Also, if you have code that requires the window object and that doesn't contain markup that you need served from the server side, then you can defer rendering it until after the SSR has been performed:
 
 ```
 const [initialized, setInitialized] = useState(false);
