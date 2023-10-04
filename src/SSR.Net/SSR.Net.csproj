@@ -12,10 +12,10 @@
     <PackageProjectUrl>https://github.com/knowit/SSR.Net</PackageProjectUrl>
     <RepositoryUrl>https://github.com/knowit/SSR.Net</RepositoryUrl>
     <PackageDescription>
-      A package that performs Server Sider Rendering (SSR) for React17, React18 and Vue 3 using the JavaScriptEngineSwitcher.Core package.
+      A package that performs Server-Sider Rendering (SSR) for React17, React18 and Vue 3 using the JavaScriptEngineSwitcher.Core package.
       Can be extended to support other frameworks and versions.
     </PackageDescription>
-    <PackageTags>SSR; React; Vue; Server Side Rendering; JavaScriptEngineSwitcher; nodejs; javascript; js;</PackageTags>
+    <PackageTags>SSR; React; Vue; Server-Side Rendering; JavaScriptEngineSwitcher; nodejs; javascript; js;</PackageTags>
   </PropertyGroup>
 
   <PropertyGroup>

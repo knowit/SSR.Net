@@ -2,7 +2,7 @@
 SSR.Net
 ============
 
-SSR.Net enables you to Server Side Render (SSR) components in React 17, React 18 and Vue 3 in .Net Framework/Core/5/6/7. It is open for extension and can support other frontend frameworks. It aims at being a performant, minimalistic way to support SSR in .Net. 
+SSR.Net enables you to Server-Side Render (SSR) components in React 17, React 18 and Vue 3 in .Net Framework/Core/5/6/7. It is open for extension and can support other frontend frameworks. It aims at being a performant, minimalistic way to support SSR in .Net. 
 
 It is based on many of the ideas in ReactJS.Net: https://github.com/reactjs/React.NET.
 
@@ -140,7 +140,7 @@ namespace SSR.Net.DotNet6.Services
 }
 ```
 
-The code above adds both a server side polyfill named React18TextEncoderPolyfill.js (React 18 needs this, and it's missing in the Java Script Engine), and the bundle we created in [Building a JavaScript bundle fit for SSR](#Building-a-JavaScript-bundle-fit-for-SSR), react18example.js. These script files will be run on each server side JavaScript engine during initialization. This means that each JavaScript engine on the server side will be able to run React, ReactDOMServer, ReactDOMClient and access our FrontPage component through the global variable Components.
+The code above adds both a server-side polyfill named React18TextEncoderPolyfill.js (React 18 needs this, and it's missing in the Java Script Engine), and the bundle we created in [Building a JavaScript bundle fit for SSR](#Building-a-JavaScript-bundle-fit-for-SSR), react18example.js. These script files will be run on each server-side JavaScript engine during initialization. This means that each JavaScript engine on the server will be able to run React, ReactDOMServer, ReactDOMClient and access our FrontPage component through the global variable Components.
 
 We use the V8 JavaScript engine in this example. This, and the scripts, is configured in a JavaScriptEnginePool. This pool will manage JavaScript engines, create new ones proactively, dispose exhausted engines and forward the rendering calls to the JavaScript engines. 
 
@@ -164,7 +164,7 @@ builder.Services.AddReact18Renderer(builder.Environment);
 
 ### Set up a controller and a view
 
-To do the actual Server Side Rendering, we need to serialize props for the React component we want to Server Side Render and send the props as JSON to the React18Renderer, together with the component name. In this simplified example, we do this directly in the controller (https://github.com/knowit/SSR.Net/blob/main/src/SSR.Net.DotNet6/Controllers/HomeController.cs). 
+To do the actual Server-Side Rendering, we need to serialize props for the React component we want to Server-Side Render and send the props as JSON to the React18Renderer, together with the component name. In this simplified example, we do this directly in the controller (https://github.com/knowit/SSR.Net/blob/main/src/SSR.Net.DotNet6/Controllers/HomeController.cs). 
 
 First, we inject the React18Renderer in the controller (some lines are removed for brevity and clarity):
 
@@ -286,7 +286,7 @@ if (typeof window !== 'undefined')
 ```
 * Global variables must not be used (except the ones described above for exposing objects to SSR.Net). Each JavaScript Engine is used multiple times, so global variables will cause state to be shared between requests, meaning data can leak from one user to another.
 * Some 3rd party packages may fail, if they use the window object or global variables.
-* SSR in React won't run useEffect hooks. So using the window object in a useEffect is safe. Also, if you have code that requires the window object and that doesn't contain markup that you need served from the server side, then you can defer rendering it until after the SSR has been performed:
+* SSR in React won't run useEffect hooks. So using the window object in a useEffect is safe. Also, if you have code that requires the window object and that doesn't contain markup that you need served from the server, then you can defer rendering it until after the SSR has been performed:
 
 ```
 const [initialized, setInitialized] = useState(false);
