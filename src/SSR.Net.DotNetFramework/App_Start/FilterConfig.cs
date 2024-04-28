@@ -1,7 +1,6 @@
-﻿using System.Web;
-using System.Web.Mvc;
+﻿using System.Web.Mvc;
 
-namespace SSR.Net.React17DotNetFramework
+namespace SSR.Net.DotNetFramework
 {
     public class FilterConfig
     {

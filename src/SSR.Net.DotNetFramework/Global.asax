@@ -1,1 +1,1 @@
-﻿<%@ Application Codebehind="Global.asax.cs" Inherits="SSR.Net.React17DotNetFramework.MvcApplication" Language="C#" %>
+﻿<%@ Application Codebehind="Global.asax.cs" Inherits="SSR.Net.DotNetFramework.MvcApplication" Language="C#" %>

@@ -7,11 +7,11 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="JavaScriptEngineSwitcher.Core" Version="3.19.0" />
-    <PackageReference Include="JavaScriptEngineSwitcher.V8" Version="3.20.10" />
-    <PackageReference Include="Microsoft.ClearScript.Core" Version="7.3.7" />
-    <PackageReference Include="Microsoft.ClearScript.V8.Native.win-x64" Version="7.3.7" />
-    <PackageReference Include="Microsoft.ClearScript.V8.Native.win-x86" Version="7.3.7" />
+    <PackageReference Include="JavaScriptEngineSwitcher.Core" Version="3.24.1" />
+    <PackageReference Include="JavaScriptEngineSwitcher.V8" Version="3.24.2" />
+    <PackageReference Include="Microsoft.ClearScript.Core" Version="7.4.5" />
+    <PackageReference Include="Microsoft.ClearScript.V8.Native.win-x64" Version="7.4.5" />
+    <PackageReference Include="Microsoft.ClearScript.V8.Native.win-x86" Version="7.4.5" />
   </ItemGroup>
 
   <ItemGroup>

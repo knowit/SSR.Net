@@ -1,7 +1,7 @@
 ﻿SSR.Net
 ============
 
-SSR.Net facilitates Server-Side Rendering (SSR) for React 17, React 18, and Vue 3 using JavaScriptEngineSwitcher.Core.
+SSR.Net facilitates Server-Side Rendering (SSR) for React 17, React 18, React 19, and Vue 3 using JavaScriptEngineSwitcher.Core.
 
 It is open for extension to support other JavaScript frameworks.
 

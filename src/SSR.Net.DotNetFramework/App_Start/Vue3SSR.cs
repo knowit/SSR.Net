@@ -4,7 +4,7 @@ using SSR.Net.Models;
 using SSR.Net.Services;
 using System.Web;
 
-namespace SSR.Net.React17DotNetFramework
+namespace SSR.Net.Vue3DotNetFramework
 {
     //Replace this with your preferred IoC-solution. 
     public class Vue3SSR

@@ -1,6 +1,6 @@
 ﻿using System.Web.Mvc;
 
-namespace SSR.Net.React17DotNetFramework.Controllers
+namespace SSR.Net.DotNetFramework.Controllers
 {
     public class HomeController : Controller
     {
@@ -9,6 +9,8 @@ namespace SSR.Net.React17DotNetFramework.Controllers
         public ActionResult React17() => View();
 
         public ActionResult React18() => View();
+
+        public ActionResult React19() => View();
 
         public ActionResult Vue3() => View();
     }

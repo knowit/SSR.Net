@@ -4,20 +4,20 @@ using SSR.Net.Models;
 using SSR.Net.Services;
 using System.Web;
 
-namespace SSR.Net.React18DotNetFramework
+namespace SSR.Net.React19DotNetFramework
 {
     //Replace this with your preferred IoC-solution. 
-    public class React18SSR
+    public class React19SSR
     {
-        public static React18Renderer Renderer { get; private set; }
-        public static void ConfigureReact18()
+        public static React19Renderer Renderer { get; private set; }
+        public static void ConfigureReact19()
         {
             var pool = new JavaScriptEnginePool(new V8JsEngineFactory(), config =>
                 config
-                    .AddScriptFile(HttpContext.Current.Server.MapPath("~/App_Start/React18TextEncoderPolyfill.js"))
-                    .AddScriptFile(HttpContext.Current.Server.MapPath("~/Frontend/react18example.js"))
+                    .AddScriptFile(HttpContext.Current.Server.MapPath("~/App_Start/React19TextEncoderPolyfill.js"))
+                    .AddScriptFile(HttpContext.Current.Server.MapPath("~/Frontend/react19example.js"))
             );
-            Renderer = new React18Renderer(pool);
+            Renderer = new React19Renderer(pool);
         }
 
         public static RenderedComponent Render(string componentName, object props) =>

@@ -7,6 +7,7 @@ builder.Services.AddControllersWithViews();
 
 builder.Services.AddReact17Renderer(builder.Environment);
 builder.Services.AddReact18Renderer(builder.Environment);
+builder.Services.AddReact19Renderer(builder.Environment);
 builder.Services.AddVue3Renderer(builder.Environment);
 
 var app = builder.Build();

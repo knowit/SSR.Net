@@ -56,6 +56,25 @@ namespace SSR.Net.DotNet6.Controllers {
             return View(renderedComponent);
         }
 
+        public ActionResult React19() {
+            var propsJson = JsonConvert.SerializeObject(
+                new {
+                    header = "React 19 with SSR",
+                    links = new[]{
+                        new {
+                            text = "Google.com",
+                            href = "https://www.google.com"
+                        },
+                        new {
+                            text = "Hacker news",
+                            href = "https://news.ycombinator.org"
+                        }
+                    }
+                });
+            var renderedComponent = _react18Renderer.RenderComponent("Components.FrontPage", propsJson);
+            return View(renderedComponent);
+        }
+
         public ActionResult Vue3() {
             var propsJson = JsonConvert.SerializeObject(
                 new {
