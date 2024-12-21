@@ -23,10 +23,6 @@
     <PackageTags>ssr; react; reactjs; react19; react18; react17; vue; vuejs; server-side rendering; javascriptengineswitcher; nodejs; javascript; js;</PackageTags>
   </PropertyGroup>
 
-  <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
-  </PropertyGroup>
-
   <ItemGroup>
     <None Remove="Docs\LICENSE" />
     <None Remove="Docs\README.MD" />
