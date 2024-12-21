@@ -8,7 +8,7 @@
     }
   },
   "profiles": {
-    "SSR.Net.DotNet6": {
+    "SSR.Net.DotNet8": {
       "commandName": "Project",
       "dotnetRunMessages": true,
       "launchBrowser": true,

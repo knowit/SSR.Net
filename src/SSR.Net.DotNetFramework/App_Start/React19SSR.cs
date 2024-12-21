@@ -15,6 +15,7 @@ namespace SSR.Net.React19DotNetFramework
             var pool = new JavaScriptEnginePool(new V8JsEngineFactory(), config =>
                 config
                     .AddScriptFile(HttpContext.Current.Server.MapPath("~/App_Start/React19TextEncoderPolyfill.js"))
+                    .AddScriptFile(HttpContext.Current.Server.MapPath("~/App_Start/React19MessageChannelPolyfill.js"))
                     .AddScriptFile(HttpContext.Current.Server.MapPath("~/Frontend/react19example.js"))
             );
             Renderer = new React19Renderer(pool);

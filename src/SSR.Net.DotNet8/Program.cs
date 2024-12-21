@@ -1,4 +1,4 @@
-using SSR.Net.DotNet6.Services;
+using SSR.Net.DotNet8.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 

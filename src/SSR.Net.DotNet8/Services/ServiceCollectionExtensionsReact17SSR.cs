@@ -1,7 +1,7 @@
 ﻿using JavaScriptEngineSwitcher.V8;
 using SSR.Net.Services;
 
-namespace SSR.Net.DotNet6.Services
+namespace SSR.Net.DotNet8.Services
 {
     public static class ServiceCollectionExtensionsReact17SSR
     {

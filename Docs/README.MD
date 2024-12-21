@@ -2,7 +2,7 @@
 SSR.Net
 ============
 
-SSR.Net enables you to Server-Side Render (SSR) components in React 17, React 18 and Vue 3 in .Net Framework/Core/5/6/7/8. It is open for extension and can support other frontend frameworks. It aims at being a performant, minimalistic way to support SSR in .Net. 
+SSR.Net enables you to Server-Side Render (SSR) components in React 17, React 18 and Vue 3 in .Net Framework/Core/5/6/7/8/9. It is open for extension and can support other frontend frameworks. It aims at being a performant, minimalistic way to support SSR in .Net. 
 
 It is based on many of the ideas in ReactJS.Net: https://github.com/reactjs/React.NET.
 
@@ -17,7 +17,7 @@ This library can be installed through NuGet. You will also need to install a Jav
 
 The easiest way to get started is to copy or look at one of the example projects:
 * For .Net Framework: https://github.com/knowit/SSR.Net/tree/main/src/SSR.Net.DotNetFramework
-* For .Net 6: https://github.com/knowit/SSR.Net/tree/main/src/SSR.Net.DotNet6
+* For .Net 8: https://github.com/knowit/SSR.Net/tree/main/src/SSR.Net.DotNet8
 * Example frontend for React 18: https://github.com/knowit/SSR.Net/tree/main/src/Frontend/React18Source
 * Example frontend for React 17: https://github.com/knowit/SSR.Net/tree/main/src/Frontend/React17Source
 * Example frontend for Vue 3: https://github.com/knowit/SSR.Net/tree/main/src/Frontend/Vue3Source
@@ -29,7 +29,7 @@ To configure and use SSR.Net, you need to do several things:
 * [Set up a web project](#set-up-a-web-project)
 * [Set up a controller and a view](#Set-up-a-controller-and-a-view)
 
-We will look at how to do this for React 18 and .Net 6 in the following chapters. There are examples for React 17, React 18 and Vue 3 for both .Net Framework and .Net 6 in the code base. The examples in .Net 6 should be quite descriptive for .Net Core 2 and forward.
+We will look at how to do this for React 18 and .Net 8 in the following chapters. There are examples for React 17, React 18, React 19 and Vue 3 for both .Net Framework and .Net 8 in the code base. The examples in .Net 8 should be quite descriptive for .Net Core 2 and forward.
 
 ### Building a JavaScript bundle fit for SSR
 
@@ -100,30 +100,30 @@ In this simple example we use esbuild alone to build the bundle, but it's no pro
 ```
   "scripts": {
 ...
-    "build-dotnet6": "esbuild ./src/app.tsx --bundle --outfile=../../SSR.Net.DotNet6/wwwroot/react18example.js"
+    "build-dotnet8": "esbuild ./src/app.tsx --bundle --outfile=../../SSR.Net.DotNet8/wwwroot/react18example.js"
   },
 ```
 
 We run this through npm:
 
 ```
-npm run build-dotnet6
+npm run build-dotnet8
 ```
 
-The resulting js bundle is built to the wwwroot folder in the DotNet6 project as react18example.js: https://github.com/knowit/SSR.Net/tree/main/src/SSR.Net.DotNet6/wwwroot
+The resulting js bundle is built to the wwwroot folder in the DotNet8 project as react18example.js: https://github.com/knowit/SSR.Net/tree/main/src/SSR.Net.DotNet8/wwwroot
 
 ### Set up a web project
 
-Let's look at this example web project: https://github.com/knowit/SSR.Net/tree/main/src/SSR.Net.DotNet6
+Let's look at this example web project: https://github.com/knowit/SSR.Net/tree/main/src/SSR.Net.DotNet8
 
 We have an extension method for adding a React18Renderer to IoC, which is the normal way of adding things to .Net Core and forward:
-https://github.com/knowit/SSR.Net/blob/main/src/SSR.Net.DotNet6/Services/ServiceCollectionExtensionsReact18SSR.cs
+https://github.com/knowit/SSR.Net/blob/main/src/SSR.Net.DotNet8/Services/ServiceCollectionExtensionsReact18SSR.cs
 
 ```
 using JavaScriptEngineSwitcher.V8;
 using SSR.Net.Services;
 
-namespace SSR.Net.DotNet6.Services
+namespace SSR.Net.DotNet8.Services
 {
     public static class ServiceCollectionExtensionsReact18SSR
     {
@@ -145,7 +145,7 @@ The code above adds both a server-side polyfill named React18TextEncoderPolyfill
 We use the V8 JavaScript engine in this example. This, and the scripts, is configured in a JavaScriptEnginePool. This pool will manage JavaScript engines, create new ones proactively, dispose exhausted engines and forward the rendering calls to the JavaScript engines. 
 
 To make this work, we have to reference some packages in our web project:
-https://github.com/knowit/SSR.Net/blob/main/src/SSR.Net.DotNet6/SSR.Net.DotNet6.csproj
+https://github.com/knowit/SSR.Net/blob/main/src/SSR.Net.DotNet8/SSR.Net.DotNet8.csproj
 
 ``` 
     <PackageReference Include="JavaScriptEngineSwitcher.Core" Version="3.19.0" />
@@ -155,7 +155,7 @@ https://github.com/knowit/SSR.Net/blob/main/src/SSR.Net.DotNet6/SSR.Net.DotNet6.
     <PackageReference Include="Microsoft.ClearScript.V8.Native.win-x86" Version="7.3.7" />
 ```
 
-After this is done, we call the extension method during the initialization of our program in Program.cs: https://github.com/knowit/SSR.Net/blob/main/src/SSR.Net.DotNet6/Program.cs
+After this is done, we call the extension method during the initialization of our program in Program.cs: https://github.com/knowit/SSR.Net/blob/main/src/SSR.Net.DotNet8/Program.cs
 
 ```
 builder.Services.AddReact18Renderer(builder.Environment);
@@ -164,7 +164,7 @@ builder.Services.AddReact18Renderer(builder.Environment);
 
 ### Set up a controller and a view
 
-To do the actual Server-Side Rendering, we need to serialize props for the React component we want to Server-Side Render and send the props as JSON to the React18Renderer, together with the component name. In this simplified example, we do this directly in the controller (https://github.com/knowit/SSR.Net/blob/main/src/SSR.Net.DotNet6/Controllers/HomeController.cs). 
+To do the actual Server-Side Rendering, we need to serialize props for the React component we want to Server-Side Render and send the props as JSON to the React18Renderer, together with the component name. In this simplified example, we do this directly in the controller (https://github.com/knowit/SSR.Net/blob/main/src/SSR.Net.DotNet8/Controllers/HomeController.cs). 
 
 First, we inject the React18Renderer in the controller (some lines are removed for brevity and clarity):
 
@@ -203,7 +203,7 @@ public ActionResult React18() {
 }
 ```
 
-The view is kept very simple (https://github.com/knowit/SSR.Net/blob/main/src/SSR.Net.DotNet6/Views/Home/React18.cshtml):
+The view is kept very simple (https://github.com/knowit/SSR.Net/blob/main/src/SSR.Net.DotNet8/Views/Home/React18.cshtml):
 
 ```
 @using SSR.Net.Models;

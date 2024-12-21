@@ -1,13 +1,13 @@
 {
-  "dependencies": {
-    "react": "^19.0.0-beta-94eed63c49-20240425",
-    "react-dom": "^19.0.0-beta-94eed63c49-20240425"
-  },
   "scripts": {
     "build-dotnetframework": "esbuild ./src/app.tsx --bundle --platform=browser --outfile=../../SSR.Net.DotNetFramework/Frontend/react19example.js",
-    "build-dotnet6": "esbuild ./src/app.tsx --bundle --outfile=../../SSR.Net.DotNet6/wwwroot/react19example.js"
+    "build-dotnet8": "esbuild ./src/app.tsx --bundle --outfile=../../SSR.Net.DotNet8/wwwroot/react19example.js"
+  },
+  "dependencies": {
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
   },
   "devDependencies": {
-    "esbuild": "^0.17.7"
+    "esbuild": "^0.24.2"
   }
 }

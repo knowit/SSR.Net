@@ -1,4 +1,4 @@
-namespace SSR.Net.DotNet6.Models
+namespace SSR.Net.DotNet8.Models
 {
     public class ErrorViewModel
     {

@@ -9,7 +9,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SSR.Net.Tester", "SSR.Net.T
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SSR.Net.DotNetFramework", "SSR.Net.DotNetFramework\SSR.Net.DotNetFramework.csproj", "{BC78EBD9-57E8-4A15-B5C8-94B8C791069D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SSR.Net.DotNet6", "SSR.Net.DotNet6\SSR.Net.DotNet6.csproj", "{68B36F7E-D36A-4900-AC60-95C55C5DA998}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SSR.Net.DotNet8", "SSR.Net.DotNet8\SSR.Net.DotNet8.csproj", "{68B36F7E-D36A-4900-AC60-95C55C5DA998}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

@@ -5,9 +5,9 @@
   },
   "scripts": {
     "build-dotnetframework": "esbuild ./src/app.tsx --bundle --outfile=../../SSR.Net.DotNetFramework/Frontend/react17example.js",
-    "build-dotnet6": "esbuild ./src/app.tsx --bundle --outfile=../../SSR.Net.DotNet6/wwwroot/react17example.js"
+    "build-dotnet8": "esbuild ./src/app.tsx --bundle --outfile=../../SSR.Net.DotNet8/wwwroot/react17example.js"
   },
   "devDependencies": {
-    "esbuild": "^0.17.7"
+    "esbuild": "^0.24.2"
   }
 }

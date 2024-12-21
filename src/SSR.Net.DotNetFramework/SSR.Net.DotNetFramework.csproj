@@ -175,11 +175,13 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="App_Start\React19MessageChannelPolyfill.js" />
     <Content Include="App_Start\React19TextEncoderPolyfill.js" />
     <Content Include="App_Start\React18TextEncoderPolyfill.js" />
     <Content Include="favicon.ico" />
     <Content Include="Frontend\react17example.js" />
     <Content Include="Frontend\react18example.js" />
+    <Content Include="Frontend\react19example.js" />
     <Content Include="Frontend\vue3example.js" />
     <Content Include="Global.asax" />
     <Content Include="Web.config" />

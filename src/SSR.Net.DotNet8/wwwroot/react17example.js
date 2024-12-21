@@ -2673,6 +2673,7 @@
             }
             switch (typeof value) {
               case "function":
+              // $FlowIssue symbol is perfectly valid here
               case "symbol":
                 return true;
               case "boolean": {
@@ -4639,6 +4640,10 @@
               return typeof props.is === "string";
             }
             switch (tagName) {
+              // These are reserved SVG and MathML elements.
+              // We don't mind this list too much because we expect it to never grow.
+              // The alternative is to track the namespace in a few places which is convoluted.
+              // https://w3c.github.io/webcomponents/spec/custom/#custom-elements-core-concepts
               case "annotation-xml":
               case "color-profile":
               case "font-face":
@@ -6898,6 +6903,7 @@
                 return _lane3;
               }
               case TransitionPriority:
+              // Should be handled by findTransitionLane instead
               case RetryLanePriority:
                 break;
               case IdleLanePriority:
@@ -7357,8 +7363,7 @@
             button: 0,
             buttons: 0,
             relatedTarget: function(event) {
-              if (event.relatedTarget === void 0)
-                return event.fromElement === event.srcElement ? event.toElement : event.fromElement;
+              if (event.relatedTarget === void 0) return event.fromElement === event.srcElement ? event.toElement : event.fromElement;
               return event.relatedTarget;
             },
             movementX: function(event) {
@@ -8074,43 +8079,42 @@
             var indexWithinFocus = 0;
             var node = outerNode;
             var parentNode = null;
-            outer:
+            outer: while (true) {
+              var next = null;
               while (true) {
-                var next = null;
-                while (true) {
-                  if (node === anchorNode && (anchorOffset === 0 || node.nodeType === TEXT_NODE)) {
-                    start = length + anchorOffset;
-                  }
-                  if (node === focusNode && (focusOffset === 0 || node.nodeType === TEXT_NODE)) {
-                    end = length + focusOffset;
-                  }
-                  if (node.nodeType === TEXT_NODE) {
-                    length += node.nodeValue.length;
-                  }
-                  if ((next = node.firstChild) === null) {
-                    break;
-                  }
-                  parentNode = node;
-                  node = next;
+                if (node === anchorNode && (anchorOffset === 0 || node.nodeType === TEXT_NODE)) {
+                  start = length + anchorOffset;
                 }
-                while (true) {
-                  if (node === outerNode) {
-                    break outer;
-                  }
-                  if (parentNode === anchorNode && ++indexWithinAnchor === anchorOffset) {
-                    start = length;
-                  }
-                  if (parentNode === focusNode && ++indexWithinFocus === focusOffset) {
-                    end = length;
-                  }
-                  if ((next = node.nextSibling) !== null) {
-                    break;
-                  }
-                  node = parentNode;
-                  parentNode = node.parentNode;
+                if (node === focusNode && (focusOffset === 0 || node.nodeType === TEXT_NODE)) {
+                  end = length + focusOffset;
                 }
+                if (node.nodeType === TEXT_NODE) {
+                  length += node.nodeValue.length;
+                }
+                if ((next = node.firstChild) === null) {
+                  break;
+                }
+                parentNode = node;
                 node = next;
               }
+              while (true) {
+                if (node === outerNode) {
+                  break outer;
+                }
+                if (parentNode === anchorNode && ++indexWithinAnchor === anchorOffset) {
+                  start = length;
+                }
+                if (parentNode === focusNode && ++indexWithinFocus === focusOffset) {
+                  end = length;
+                }
+                if ((next = node.nextSibling) !== null) {
+                  break;
+                }
+                node = parentNode;
+                parentNode = node.parentNode;
+              }
+              node = next;
+            }
             if (start === -1 || end === -1) {
               return null;
             }
@@ -8313,6 +8317,7 @@
           function extractEvents$3(dispatchQueue, domEventName, targetInst, nativeEvent, nativeEventTarget, eventSystemFlags, targetContainer) {
             var targetNode = targetInst ? getNodeFromInstance(targetInst) : window;
             switch (domEventName) {
+              // Track the input node that has focus.
               case "focusin":
                 if (isTextInputElement(targetNode) || targetNode.contentEditable === "true") {
                   activeElement$1 = targetNode;
@@ -8325,6 +8330,8 @@
                 activeElementInst$1 = null;
                 lastSelection = null;
                 break;
+              // Don't fire the event while the user is dragging. This matches the
+              // semantics of the native select event.
               case "mousedown":
                 mouseDown = true;
                 break;
@@ -8334,10 +8341,20 @@
                 mouseDown = false;
                 constructSelectEvent(dispatchQueue, nativeEvent, nativeEventTarget);
                 break;
+              // Chrome and IE fire non-standard event when selection is changed (and
+              // sometimes when it hasn't). IE's event fires out of order with respect
+              // to key and input events on deletion, so we discard it.
+              //
+              // Firefox doesn't support selectionchange, so check selection status
+              // after each key entry. The selection changes after keydown and before
+              // keyup, but we check on keydown as well in the case of holding down a
+              // key, when multiple keydown events are fired but only one keyup is.
+              // This is also our approach for IE handling, for the reason above.
               case "selectionchange":
                 if (skipSelectionChangeEvent) {
                   break;
                 }
+              // falls through
               case "keydown":
               case "keyup":
                 constructSelectEvent(dispatchQueue, nativeEvent, nativeEventTarget);
@@ -8355,6 +8372,7 @@
                 if (getEventCharCode(nativeEvent) === 0) {
                   return;
                 }
+              /* falls through */
               case "keydown":
               case "keyup":
                 SyntheticEventCtor = SyntheticKeyboardEvent;
@@ -8375,11 +8393,14 @@
                 if (nativeEvent.button === 2) {
                   return;
                 }
+              /* falls through */
               case "auxclick":
               case "dblclick":
               case "mousedown":
               case "mousemove":
               case "mouseup":
+              // TODO: Disabled elements should not respond to mouse events
+              /* falls through */
               case "mouseout":
               case "mouseover":
               case "contextmenu":
@@ -8587,45 +8608,44 @@
               var targetContainerNode = targetContainer;
               if (targetInst !== null) {
                 var node = targetInst;
-                mainLoop:
-                  while (true) {
-                    if (node === null) {
-                      return;
-                    }
-                    var nodeTag = node.tag;
-                    if (nodeTag === HostRoot || nodeTag === HostPortal) {
-                      var container = node.stateNode.containerInfo;
-                      if (isMatchingRootContainer(container, targetContainerNode)) {
-                        break;
-                      }
-                      if (nodeTag === HostPortal) {
-                        var grandNode = node.return;
-                        while (grandNode !== null) {
-                          var grandTag = grandNode.tag;
-                          if (grandTag === HostRoot || grandTag === HostPortal) {
-                            var grandContainer = grandNode.stateNode.containerInfo;
-                            if (isMatchingRootContainer(grandContainer, targetContainerNode)) {
-                              return;
-                            }
-                          }
-                          grandNode = grandNode.return;
-                        }
-                      }
-                      while (container !== null) {
-                        var parentNode = getClosestInstanceFromNode(container);
-                        if (parentNode === null) {
-                          return;
-                        }
-                        var parentTag = parentNode.tag;
-                        if (parentTag === HostComponent || parentTag === HostText) {
-                          node = ancestorInst = parentNode;
-                          continue mainLoop;
-                        }
-                        container = container.parentNode;
-                      }
-                    }
-                    node = node.return;
+                mainLoop: while (true) {
+                  if (node === null) {
+                    return;
                   }
+                  var nodeTag = node.tag;
+                  if (nodeTag === HostRoot || nodeTag === HostPortal) {
+                    var container = node.stateNode.containerInfo;
+                    if (isMatchingRootContainer(container, targetContainerNode)) {
+                      break;
+                    }
+                    if (nodeTag === HostPortal) {
+                      var grandNode = node.return;
+                      while (grandNode !== null) {
+                        var grandTag = grandNode.tag;
+                        if (grandTag === HostRoot || grandTag === HostPortal) {
+                          var grandContainer = grandNode.stateNode.containerInfo;
+                          if (isMatchingRootContainer(grandContainer, targetContainerNode)) {
+                            return;
+                          }
+                        }
+                        grandNode = grandNode.return;
+                      }
+                    }
+                    while (container !== null) {
+                      var parentNode = getClosestInstanceFromNode(container);
+                      if (parentNode === null) {
+                        return;
+                      }
+                      var parentTag = parentNode.tag;
+                      if (parentTag === HostComponent || parentTag === HostText) {
+                        node = ancestorInst = parentNode;
+                        continue mainLoop;
+                      }
+                      container = container.parentNode;
+                    }
+                  }
+                  node = node.return;
+                }
               }
             }
             batchedEventUpdates(function() {
@@ -8900,10 +8920,8 @@
                 } else if (typeof nextProp === "number") {
                   setTextContent(domElement, "" + nextProp);
                 }
-              } else if (propKey === SUPPRESS_CONTENT_EDITABLE_WARNING || propKey === SUPPRESS_HYDRATION_WARNING)
-                ;
-              else if (propKey === AUTOFOCUS)
-                ;
+              } else if (propKey === SUPPRESS_CONTENT_EDITABLE_WARNING || propKey === SUPPRESS_HYDRATION_WARNING) ;
+              else if (propKey === AUTOFOCUS) ;
               else if (registrationNameDependencies.hasOwnProperty(propKey)) {
                 if (nextProp != null) {
                   if (typeof nextProp !== "function") {
@@ -9124,12 +9142,9 @@
                     styleUpdates[styleName] = "";
                   }
                 }
-              } else if (propKey === DANGEROUSLY_SET_INNER_HTML || propKey === CHILDREN)
-                ;
-              else if (propKey === SUPPRESS_CONTENT_EDITABLE_WARNING || propKey === SUPPRESS_HYDRATION_WARNING)
-                ;
-              else if (propKey === AUTOFOCUS)
-                ;
+              } else if (propKey === DANGEROUSLY_SET_INNER_HTML || propKey === CHILDREN) ;
+              else if (propKey === SUPPRESS_CONTENT_EDITABLE_WARNING || propKey === SUPPRESS_HYDRATION_WARNING) ;
+              else if (propKey === AUTOFOCUS) ;
               else if (registrationNameDependencies.hasOwnProperty(propKey)) {
                 if (!updatePayload) {
                   updatePayload = [];
@@ -9188,8 +9203,7 @@
                 if (typeof nextProp === "string" || typeof nextProp === "number") {
                   (updatePayload = updatePayload || []).push(propKey, "" + nextProp);
                 }
-              } else if (propKey === SUPPRESS_CONTENT_EDITABLE_WARNING || propKey === SUPPRESS_HYDRATION_WARNING)
-                ;
+              } else if (propKey === SUPPRESS_CONTENT_EDITABLE_WARNING || propKey === SUPPRESS_HYDRATION_WARNING) ;
               else if (registrationNameDependencies.hasOwnProperty(propKey)) {
                 if (nextProp != null) {
                   if (typeof nextProp !== "function") {
@@ -9303,8 +9317,11 @@
               for (var _i = 0; _i < attributes.length; _i++) {
                 var name = attributes[_i].name.toLowerCase();
                 switch (name) {
+                  // Built-in SSR attribute is allowed
                   case "data-reactroot":
                     break;
+                  // Controlled attributes are not validated
+                  // TODO: Only ignore them on controlled tags.
                   case "value":
                     break;
                   case "checked":
@@ -9353,12 +9370,10 @@
               ) {
                 var serverValue = void 0;
                 var propertyInfo = getPropertyInfo(propKey);
-                if (suppressHydrationWarning)
-                  ;
+                if (suppressHydrationWarning) ;
                 else if (propKey === SUPPRESS_CONTENT_EDITABLE_WARNING || propKey === SUPPRESS_HYDRATION_WARNING || // Controlled attributes are not validated
                 // TODO: Only ignore them on controlled tags.
-                propKey === "value" || propKey === "checked" || propKey === "selected")
-                  ;
+                propKey === "value" || propKey === "checked" || propKey === "selected") ;
                 else if (propKey === DANGEROUSLY_SET_INNER_HTML) {
                   var serverHTML = domElement.innerHTML;
                   var nextHtml = nextProp ? nextProp[HTML$1] : void 0;
@@ -9575,24 +9590,37 @@
             };
             var isTagValidWithParent = function(tag, parentTag) {
               switch (parentTag) {
+                // https://html.spec.whatwg.org/multipage/syntax.html#parsing-main-inselect
                 case "select":
                   return tag === "option" || tag === "optgroup" || tag === "#text";
                 case "optgroup":
                   return tag === "option" || tag === "#text";
+                // Strictly speaking, seeing an <option> doesn't mean we're in a <select>
+                // but
                 case "option":
                   return tag === "#text";
+                // https://html.spec.whatwg.org/multipage/syntax.html#parsing-main-intd
+                // https://html.spec.whatwg.org/multipage/syntax.html#parsing-main-incaption
+                // No special behavior since these rules fall back to "in body" mode for
+                // all except special table nodes which cause bad parsing behavior anyway.
+                // https://html.spec.whatwg.org/multipage/syntax.html#parsing-main-intr
                 case "tr":
                   return tag === "th" || tag === "td" || tag === "style" || tag === "script" || tag === "template";
+                // https://html.spec.whatwg.org/multipage/syntax.html#parsing-main-intbody
                 case "tbody":
                 case "thead":
                 case "tfoot":
                   return tag === "tr" || tag === "style" || tag === "script" || tag === "template";
+                // https://html.spec.whatwg.org/multipage/syntax.html#parsing-main-incolgroup
                 case "colgroup":
                   return tag === "col" || tag === "template";
+                // https://html.spec.whatwg.org/multipage/syntax.html#parsing-main-intable
                 case "table":
                   return tag === "caption" || tag === "colgroup" || tag === "tbody" || tag === "tfoot" || tag === "thead" || tag === "style" || tag === "script" || tag === "template";
+                // https://html.spec.whatwg.org/multipage/syntax.html#parsing-main-inhead
                 case "head":
                   return tag === "base" || tag === "basefont" || tag === "bgsound" || tag === "link" || tag === "meta" || tag === "title" || tag === "noscript" || tag === "noframes" || tag === "style" || tag === "script" || tag === "template";
+                // https://html.spec.whatwg.org/multipage/semantics.html#the-html-element
                 case "html":
                   return tag === "head" || tag === "body" || tag === "frameset";
                 case "frameset":
@@ -10046,8 +10074,7 @@
             {
               if (instance.nodeType === ELEMENT_NODE) {
                 warnForDeletedHydratableElement(parentContainer, instance);
-              } else if (instance.nodeType === COMMENT_NODE)
-                ;
+              } else if (instance.nodeType === COMMENT_NODE) ;
               else {
                 warnForDeletedHydratableText(parentContainer, instance);
               }
@@ -10057,8 +10084,7 @@
             if (parentProps[SUPPRESS_HYDRATION_WARNING$1] !== true) {
               if (instance.nodeType === ELEMENT_NODE) {
                 warnForDeletedHydratableElement(parentInstance, instance);
-              } else if (instance.nodeType === COMMENT_NODE)
-                ;
+              } else if (instance.nodeType === COMMENT_NODE) ;
               else {
                 warnForDeletedHydratableText(parentInstance, instance);
               }
@@ -10085,8 +10111,7 @@
             }
           }
           function didNotFindHydratableSuspenseInstance(parentType, parentProps, parentInstance) {
-            if (parentProps[SUPPRESS_HYDRATION_WARNING$1] !== true)
-              ;
+            if (parentProps[SUPPRESS_HYDRATION_WARNING$1] !== true) ;
           }
           var clientId = 0;
           function makeClientIdInDEV(warnOnAccessInDEV) {
@@ -11020,10 +11045,8 @@
                 error("Context can only be read while React is rendering. In classes, you can read it in the render method or getDerivedStateFromProps. In function components, you can read it directly in the function body, but not inside Hooks like useReducer() or useMemo().");
               }
             }
-            if (lastContextWithAllBitsObserved === context)
-              ;
-            else if (observedBits === false || observedBits === 0)
-              ;
+            if (lastContextWithAllBitsObserved === context) ;
+            else if (observedBits === false || observedBits === 0) ;
             else {
               var resolvedObservedBits;
               if (typeof observedBits !== "number" || observedBits === MAX_SIGNED_31_BIT_INT) {
@@ -11207,6 +11230,7 @@
               case CaptureUpdate: {
                 workInProgress2.flags = workInProgress2.flags & ~ShouldCapture | DidCapture;
               }
+              // Intentional fallthrough
               case UpdateState: {
                 var _payload = update.payload;
                 var partialState;
@@ -12553,6 +12577,8 @@
                       break;
                     }
                     case Block:
+                    // We intentionally fallthrough here if enableBlocksAPI is not on.
+                    // eslint-disable-next-lined no-fallthrough
                     default: {
                       if (child.elementType === element.type || // Keep this check inline so it only runs on the false path:
                       isCompatibleFamilyForHotReloading(child, element)) {
@@ -12651,6 +12677,9 @@
                       }
                     }
                   }
+                  // Intentionally fall through to the next case, which handles both
+                  // functions and classes
+                  // eslint-disable-next-lined no-fallthrough
                   case Block:
                   case FunctionComponent:
                   case ForwardRef:
@@ -16337,8 +16366,7 @@
               while (node !== null) {
                 if (node.tag === HostComponent || node.tag === HostText) {
                   appendInitialChild(parent, node.stateNode);
-                } else if (node.tag === HostPortal)
-                  ;
+                } else if (node.tag === HostPortal) ;
                 else if (node.child !== null) {
                   node.child.return = node;
                   node = node.child;
@@ -17341,8 +17369,7 @@
                   } else {
                     unhideTextInstance(_instance3, node.memoizedProps);
                   }
-                } else if ((node.tag === OffscreenComponent || node.tag === LegacyHiddenComponent) && node.memoizedState !== null && node !== finishedWork)
-                  ;
+                } else if ((node.tag === OffscreenComponent || node.tag === LegacyHiddenComponent) && node.memoizedState !== null && node !== finishedWork) ;
                 else if (node.child !== null) {
                   node.child.return = node;
                   node = node.child;
@@ -17514,31 +17541,30 @@
           }
           function getHostSibling(fiber) {
             var node = fiber;
-            siblings:
-              while (true) {
-                while (node.sibling === null) {
-                  if (node.return === null || isHostParent(node.return)) {
-                    return null;
-                  }
-                  node = node.return;
+            siblings: while (true) {
+              while (node.sibling === null) {
+                if (node.return === null || isHostParent(node.return)) {
+                  return null;
                 }
-                node.sibling.return = node.return;
-                node = node.sibling;
-                while (node.tag !== HostComponent && node.tag !== HostText && node.tag !== DehydratedFragment) {
-                  if (node.flags & Placement) {
-                    continue siblings;
-                  }
-                  if (node.child === null || node.tag === HostPortal) {
-                    continue siblings;
-                  } else {
-                    node.child.return = node;
-                    node = node.child;
-                  }
+                node = node.return;
+              }
+              node.sibling.return = node.return;
+              node = node.sibling;
+              while (node.tag !== HostComponent && node.tag !== HostText && node.tag !== DehydratedFragment) {
+                if (node.flags & Placement) {
+                  continue siblings;
                 }
-                if (!(node.flags & Placement)) {
-                  return node.stateNode;
+                if (node.child === null || node.tag === HostPortal) {
+                  continue siblings;
+                } else {
+                  node.child.return = node;
+                  node = node.child;
                 }
               }
+              if (!(node.flags & Placement)) {
+                return node.stateNode;
+              }
+            }
           }
           function commitPlacement(finishedWork) {
             var parentFiber = getHostParentFiber(finishedWork);
@@ -17559,6 +17585,7 @@
                 isContainer = true;
                 break;
               case FundamentalComponent:
+              // eslint-disable-next-line-no-fallthrough
               default: {
                 {
                   throw Error("Invalid host parent fiber. This error is likely caused by a bug in React. Please file an issue.");
@@ -17586,8 +17613,7 @@
               } else {
                 appendChildToContainer(parent, stateNode);
               }
-            } else if (tag === HostPortal)
-              ;
+            } else if (tag === HostPortal) ;
             else {
               var child = node.child;
               if (child !== null) {
@@ -17610,8 +17636,7 @@
               } else {
                 appendChild(parent, stateNode);
               }
-            } else if (tag === HostPortal)
-              ;
+            } else if (tag === HostPortal) ;
             else {
               var child = node.child;
               if (child !== null) {
@@ -17632,30 +17657,29 @@
             while (true) {
               if (!currentParentIsValid) {
                 var parent = node.return;
-                findParent:
-                  while (true) {
-                    if (!(parent !== null)) {
-                      {
-                        throw Error("Expected to find a host parent. This error is likely caused by a bug in React. Please file an issue.");
-                      }
+                findParent: while (true) {
+                  if (!(parent !== null)) {
+                    {
+                      throw Error("Expected to find a host parent. This error is likely caused by a bug in React. Please file an issue.");
                     }
-                    var parentStateNode = parent.stateNode;
-                    switch (parent.tag) {
-                      case HostComponent:
-                        currentParent = parentStateNode;
-                        currentParentIsContainer = false;
-                        break findParent;
-                      case HostRoot:
-                        currentParent = parentStateNode.containerInfo;
-                        currentParentIsContainer = true;
-                        break findParent;
-                      case HostPortal:
-                        currentParent = parentStateNode.containerInfo;
-                        currentParentIsContainer = true;
-                        break findParent;
-                    }
-                    parent = parent.return;
                   }
+                  var parentStateNode = parent.stateNode;
+                  switch (parent.tag) {
+                    case HostComponent:
+                      currentParent = parentStateNode;
+                      currentParentIsContainer = false;
+                      break findParent;
+                    case HostRoot:
+                      currentParent = parentStateNode.containerInfo;
+                      currentParentIsContainer = true;
+                      break findParent;
+                    case HostPortal:
+                      currentParent = parentStateNode.containerInfo;
+                      currentParentIsContainer = true;
+                      break findParent;
+                  }
+                  parent = parent.return;
+                }
                 currentParentIsValid = true;
               }
               if (node.tag === HostComponent || node.tag === HostText) {
@@ -18194,6 +18218,9 @@
                   }
                 }
               }
+              // Flow knows about invariant, so it complains if I add a break
+              // statement, but eslint doesn't know about invariant, so it complains
+              // if I do. eslint-disable-next-line no-fallthrough
               case RootErrored: {
                 commitRoot(root2);
                 break;
@@ -19348,8 +19375,7 @@
               } else {
                 didWarnStateUpdateForUnmountedComponent = /* @__PURE__ */ new Set([componentName]);
               }
-              if (isFlushingPassiveEffects)
-                ;
+              if (isFlushingPassiveEffects) ;
               else {
                 var previousFiber = current;
                 try {
@@ -20086,73 +20112,73 @@ For more info, visit https://reactjs.org/link/mock-scheduler`);
             } else if (typeof type === "string") {
               fiberTag = HostComponent;
             } else {
-              getTag:
-                switch (type) {
-                  case REACT_FRAGMENT_TYPE:
-                    return createFiberFromFragment(pendingProps.children, mode, lanes, key);
-                  case REACT_DEBUG_TRACING_MODE_TYPE:
-                    fiberTag = Mode;
-                    mode |= DebugTracingMode;
-                    break;
-                  case REACT_STRICT_MODE_TYPE:
-                    fiberTag = Mode;
-                    mode |= StrictMode;
-                    break;
-                  case REACT_PROFILER_TYPE:
-                    return createFiberFromProfiler(pendingProps, mode, lanes, key);
-                  case REACT_SUSPENSE_TYPE:
-                    return createFiberFromSuspense(pendingProps, mode, lanes, key);
-                  case REACT_SUSPENSE_LIST_TYPE:
-                    return createFiberFromSuspenseList(pendingProps, mode, lanes, key);
-                  case REACT_OFFSCREEN_TYPE:
-                    return createFiberFromOffscreen(pendingProps, mode, lanes, key);
-                  case REACT_LEGACY_HIDDEN_TYPE:
-                    return createFiberFromLegacyHidden(pendingProps, mode, lanes, key);
-                  case REACT_SCOPE_TYPE:
-                  default: {
-                    if (typeof type === "object" && type !== null) {
-                      switch (type.$$typeof) {
-                        case REACT_PROVIDER_TYPE:
-                          fiberTag = ContextProvider;
-                          break getTag;
-                        case REACT_CONTEXT_TYPE:
-                          fiberTag = ContextConsumer;
-                          break getTag;
-                        case REACT_FORWARD_REF_TYPE:
-                          fiberTag = ForwardRef;
-                          {
-                            resolvedType = resolveForwardRefForHotReloading(resolvedType);
-                          }
-                          break getTag;
-                        case REACT_MEMO_TYPE:
-                          fiberTag = MemoComponent;
-                          break getTag;
-                        case REACT_LAZY_TYPE:
-                          fiberTag = LazyComponent;
-                          resolvedType = null;
-                          break getTag;
-                        case REACT_BLOCK_TYPE:
-                          fiberTag = Block;
-                          break getTag;
-                      }
+              getTag: switch (type) {
+                case REACT_FRAGMENT_TYPE:
+                  return createFiberFromFragment(pendingProps.children, mode, lanes, key);
+                case REACT_DEBUG_TRACING_MODE_TYPE:
+                  fiberTag = Mode;
+                  mode |= DebugTracingMode;
+                  break;
+                case REACT_STRICT_MODE_TYPE:
+                  fiberTag = Mode;
+                  mode |= StrictMode;
+                  break;
+                case REACT_PROFILER_TYPE:
+                  return createFiberFromProfiler(pendingProps, mode, lanes, key);
+                case REACT_SUSPENSE_TYPE:
+                  return createFiberFromSuspense(pendingProps, mode, lanes, key);
+                case REACT_SUSPENSE_LIST_TYPE:
+                  return createFiberFromSuspenseList(pendingProps, mode, lanes, key);
+                case REACT_OFFSCREEN_TYPE:
+                  return createFiberFromOffscreen(pendingProps, mode, lanes, key);
+                case REACT_LEGACY_HIDDEN_TYPE:
+                  return createFiberFromLegacyHidden(pendingProps, mode, lanes, key);
+                case REACT_SCOPE_TYPE:
+                // eslint-disable-next-line no-fallthrough
+                default: {
+                  if (typeof type === "object" && type !== null) {
+                    switch (type.$$typeof) {
+                      case REACT_PROVIDER_TYPE:
+                        fiberTag = ContextProvider;
+                        break getTag;
+                      case REACT_CONTEXT_TYPE:
+                        fiberTag = ContextConsumer;
+                        break getTag;
+                      case REACT_FORWARD_REF_TYPE:
+                        fiberTag = ForwardRef;
+                        {
+                          resolvedType = resolveForwardRefForHotReloading(resolvedType);
+                        }
+                        break getTag;
+                      case REACT_MEMO_TYPE:
+                        fiberTag = MemoComponent;
+                        break getTag;
+                      case REACT_LAZY_TYPE:
+                        fiberTag = LazyComponent;
+                        resolvedType = null;
+                        break getTag;
+                      case REACT_BLOCK_TYPE:
+                        fiberTag = Block;
+                        break getTag;
                     }
-                    var info = "";
-                    {
-                      if (type === void 0 || typeof type === "object" && type !== null && Object.keys(type).length === 0) {
-                        info += " You likely forgot to export your component from the file it's defined in, or you might have mixed up default and named imports.";
-                      }
-                      var ownerName = owner ? getComponentName(owner.type) : null;
-                      if (ownerName) {
-                        info += "\n\nCheck the render method of `" + ownerName + "`.";
-                      }
+                  }
+                  var info = "";
+                  {
+                    if (type === void 0 || typeof type === "object" && type !== null && Object.keys(type).length === 0) {
+                      info += " You likely forgot to export your component from the file it's defined in, or you might have mixed up default and named imports.";
                     }
+                    var ownerName = owner ? getComponentName(owner.type) : null;
+                    if (ownerName) {
+                      info += "\n\nCheck the render method of `" + ownerName + "`.";
+                    }
+                  }
+                  {
                     {
-                      {
-                        throw Error("Element type is invalid: expected a string (for built-in components) or a class/function (for composite components) but got: " + (type == null ? type : typeof type) + "." + info);
-                      }
+                      throw Error("Element type is invalid: expected a string (for built-in components) or a class/function (for composite components) but got: " + (type == null ? type : typeof type) + "." + info);
                     }
                   }
                 }
+              }
             }
             var fiber = createFiber(fiberTag, pendingProps, key, mode);
             fiber.elementType = type;
@@ -21713,6 +21739,7 @@ For more info, visit https://reactjs.org/link/mock-scheduler`);
             }
             switch (typeof value) {
               case "function":
+              // $FlowIssue symbol is perfectly valid here
               case "symbol":
                 return true;
               case "boolean": {
@@ -22739,6 +22766,10 @@ For more info, visit https://reactjs.org/link/mock-scheduler`);
               return typeof props.is === "string";
             }
             switch (tagName) {
+              // These are reserved SVG and MathML elements.
+              // We don't mind this list too much because we expect it to never grow.
+              // The alternative is to track the namespace in a few places which is convoluted.
+              // https://w3c.github.io/webcomponents/spec/custom/#custom-elements-core-concepts
               case "annotation-xml":
               case "color-profile":
               case "font-face":
@@ -24235,6 +24266,13 @@ For more info, visit https://reactjs.org/link/mock-scheduler`);
                   return this.renderDOM(nextElement, context, parentNamespace);
                 }
                 switch (elementType) {
+                  // TODO: LegacyHidden acts the same as a fragment. This only works
+                  // because we currently assume that every instance of LegacyHidden is
+                  // accompanied by a host component wrapper. In the hidden mode, the host
+                  // component is given a `hidden` attribute, which ensures that the
+                  // initial HTML is not visible. To support the use of LegacyHidden as a
+                  // true fragment, without an extra DOM node, we would have to hide the
+                  // initial HTML in some other way.
                   case REACT_LEGACY_HIDDEN_TYPE:
                   case REACT_DEBUG_TRACING_MODE_TYPE:
                   case REACT_STRICT_MODE_TYPE:
@@ -24265,6 +24303,7 @@ For more info, visit https://reactjs.org/link/mock-scheduler`);
                       }
                     }
                   }
+                  // eslint-disable-next-line-no-fallthrough
                   case REACT_SCOPE_TYPE: {
                     {
                       {
@@ -24368,6 +24407,7 @@ For more info, visit https://reactjs.org/link/mock-scheduler`);
                       this.stack.push(_frame8);
                       return "";
                     }
+                    // eslint-disable-next-line-no-fallthrough
                     case REACT_FUNDAMENTAL_TYPE: {
                       {
                         {
@@ -24375,6 +24415,7 @@ For more info, visit https://reactjs.org/link/mock-scheduler`);
                         }
                       }
                     }
+                    // eslint-disable-next-line-no-fallthrough
                     case REACT_LAZY_TYPE: {
                       var _element2 = nextChild;
                       var lazyComponent = nextChild.type;
