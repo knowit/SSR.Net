@@ -10,6 +10,7 @@ namespace SSR.Net.DotNet8.Services
             var pool = new JavaScriptEnginePool(new V8JsEngineFactory(), config =>
                 config
                     .AddScriptFile(Path.Combine(webHostEnvironment.WebRootPath, "vue3example.js"))
+                    .WithAsync()
             );
             services.AddSingleton(new Vue3Renderer(pool));
         }

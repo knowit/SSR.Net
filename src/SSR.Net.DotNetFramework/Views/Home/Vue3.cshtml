@@ -1,9 +1,6 @@
-﻿@{
+﻿@model SSR.Net.Models.RenderedComponent 
+@{
     Layout = null;
-    var component = Vue3SSR.Render("Components.Example", new
-    {
-        title = "Vue 3 with SSR"
-    });
 }
 
 <!DOCTYPE html>
@@ -15,7 +12,7 @@
     @Scripts.Render("/Frontend/vue3example.js")
 </head>
 <body>
-    @Html.Raw(component.Html)
-    <script>@Html.Raw(component.InitScript)</script>
+    @Html.Raw(Model.Html)
+    <script>@Html.Raw(Model.InitScript)</script>
 </body>
 </html>

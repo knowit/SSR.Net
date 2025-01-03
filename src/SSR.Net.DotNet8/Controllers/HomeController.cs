@@ -78,12 +78,12 @@ namespace SSR.Net.DotNet8.Controllers {
             return View(renderedComponent);
         }
 
-        public ActionResult Vue3() {
+        public async Task<ActionResult> Vue3() {
             var propsJson = JsonConvert.SerializeObject(
                 new {
                     title = "Vue 3 with SSR"
                 });
-            var renderedComponent = _vue3Renderer.RenderComponent("Components.Example", propsJson);
+            var renderedComponent = await _vue3Renderer.RenderComponentAsync("Components.Example", propsJson);
             return View(renderedComponent);
         }
     }

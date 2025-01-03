@@ -2,6 +2,7 @@
 using Newtonsoft.Json;
 using SSR.Net.Models;
 using SSR.Net.Services;
+using System.Threading.Tasks;
 using System.Web;
 
 namespace SSR.Net.Vue3DotNetFramework
@@ -15,11 +16,12 @@ namespace SSR.Net.Vue3DotNetFramework
             var pool = new JavaScriptEnginePool(new V8JsEngineFactory(), config =>
                 config
                     .AddScriptFile(HttpContext.Current.Server.MapPath("~/Frontend/vue3example.js"))
+                    .WithAsync()
             );
             Renderer = new Vue3Renderer(pool);
         }
 
-        public static RenderedComponent Render(string componentName, object props) =>
-            Renderer.RenderComponent(componentName, JsonConvert.SerializeObject(props));
+        public static async Task<RenderedComponent> RenderAsync(string componentName, object props) =>
+            await Renderer.RenderComponentAsync(componentName, JsonConvert.SerializeObject(props));
     }
 }

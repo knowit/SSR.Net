@@ -1,8 +1,6 @@
-﻿using JavaScriptEngineSwitcher.Core;
+using JavaScriptEngineSwitcher.Core;
 using SSR.Net.Models;
 using System;
-using System.Diagnostics;
-using System.Threading;
 using System.Threading.Tasks;
 
 namespace SSR.Net.Services
@@ -20,24 +18,26 @@ namespace SSR.Net.Services
         public DateTime InstantiationTime { get; protected set; }
         public DateTime InitializedTime { get; protected set; }
         public Exception InitializationException { get; protected set; }
+        protected SSRNetResultCallback ResultCallback { get; set; }
 
-        public JavaScriptEngine(Func<IJsEngine> createEngine, int maxUsages, int garbageCollectionInterval, int bundleNumber)
+        public JavaScriptEngine(Func<IJsEngine> createEngine, int maxUsages, int garbageCollectionInterval, int bundleNumber, bool supportAsync)
         {
             _maxUsages = maxUsages;
             BundleNumber = bundleNumber;
             InstantiationTime = DateTime.UtcNow;
             _garbageCollectionInterval = garbageCollectionInterval;
             _state = JavaScriptEngineState.Uninitialized;
-            _initializer = Task.Run(() =>
-            {
-                try
-                {
+            _initializer = Task.Run(() => {
+                try {
                     _engine = createEngine();
+                    if (supportAsync) {
+                        ResultCallback = new SSRNetResultCallback();
+                        _engine.EmbedHostObject(nameof(SSRNetResultCallback), ResultCallback);
+                    }
                     _state = JavaScriptEngineState.Ready;
                     InitializedTime = DateTime.UtcNow;
                 }
-                catch (Exception ex)
-                {
+                catch (Exception ex) {
                     _state = JavaScriptEngineState.InitializationFailed;
                     InitializationException = ex;
                     InitializedTime = DateTime.UtcNow;
@@ -60,36 +60,21 @@ namespace SSR.Net.Services
             return this;
         }
 
-        public virtual string EvaluateAsyncAndRelease(string script, string resultVariableName, int asyncTimeoutMs)
+        public virtual async Task<string> EvaluateAsyncAndRelease(string script, string executionId, int asyncTimeoutMs)
         {
             if (_state != JavaScriptEngineState.Leased)
                 throw new InvalidOperationException($"Cannot evaluate script on engine in state {_state}");
-            string result = null;
-            try
-            {
+            try {
+                ResultCallback.SetExecutionId(executionId);
                 _engine.Execute(script);
-                var sw = Stopwatch.StartNew();
-                while (sw.ElapsedMilliseconds < asyncTimeoutMs)
-                {
-                    result = _engine.Evaluate<string>(resultVariableName);
-                    if (string.IsNullOrEmpty(result))
-                        Thread.Sleep(5);
-                    else if (result.Equals("Error"))
-                    {
-                        result = null;
-                        break;
-                    }
-                    else
-                        break;
-                }
-                if (!string.IsNullOrEmpty(result))
-                    _engine.Execute("delete " + resultVariableName);
+                await ResultCallback.AwaitResult(asyncTimeoutMs);
+                if (ResultCallback.HasHtml())
+                    return ResultCallback.RetrieveResult(executionId);
             }
-            finally
-            {
+            finally {
                 Release();
             }
-            return result;
+            return null;
         }
 
         public virtual string EvaluateAndRelease(string script)
@@ -99,12 +84,10 @@ namespace SSR.Net.Services
             if (_state != JavaScriptEngineState.Leased)
                 throw new InvalidOperationException($"Cannot evaluate script on engine in state {_state}");
             string result;
-            try
-            {
+            try {
                 result = _engine.Evaluate<string>(script);
             }
-            finally
-            {
+            finally {
                 Release();
             }
             return result;
@@ -114,17 +97,14 @@ namespace SSR.Net.Services
         {
             if (UsageCount >= _maxUsages)
                 _depleted = true;
-            else if (UsageCount % _garbageCollectionInterval == 0)
-            {
+            else if (UsageCount % _garbageCollectionInterval == 0) {
                 _state = JavaScriptEngineState.RequiresGarbageCollection;
-                Task.Run(() =>
-                {
+                Task.Run(() => {
                     RunGarbageCollection();
                     _state = JavaScriptEngineState.Ready;
                 });
             }
-            else
-            {
+            else {
                 _state = JavaScriptEngineState.Ready;
             }
         }
@@ -140,8 +120,7 @@ namespace SSR.Net.Services
 
         public virtual void RunGarbageCollection()
         {
-            if (_engine.SupportsGarbageCollection)
-            {
+            if (_engine.SupportsGarbageCollection) {
                 _engine.CollectGarbage();
                 _state = JavaScriptEngineState.Ready;
             }

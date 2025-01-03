@@ -1,19 +1,6 @@
-﻿@{
+﻿@model SSR.Net.Models.RenderedComponent 
+@{
     Layout = null;
-    var component = React18SSR.Render("Components.FrontPage", new
-    {
-        header = "React 18 with SSR",
-        links = new[]{
-            new {
-                text= "Google.com",
-                href="https://www.google.com"
-            },
-            new {
-                text = "Hacker news",
-                href="https://news.ycombinator.org"
-            }
-        }
-    });
 }
 
 <!DOCTYPE html>
@@ -25,7 +12,7 @@
     @Scripts.Render("/Frontend/react18example.js")
 </head>
 <body>
-    @Html.Raw(component.Html)
-    <script>@Html.Raw(component.InitScript)</script>
+    @Html.Raw(Model.Html)
+    <script>@Html.Raw(Model.InitScript)</script>
 </body>
 </html>

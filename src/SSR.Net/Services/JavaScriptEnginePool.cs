@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace SSR.Net.Services
 {
@@ -21,6 +22,7 @@ namespace SSR.Net.Services
         protected int MaxUsages = 100;
         protected int MinEngines = 5;
         protected int StandbyEngineCount = 3;
+        protected bool SupportAsync = false;
         protected object Lock = new object();
         public bool IsStarted { get; protected set; }
 
@@ -32,19 +34,23 @@ namespace SSR.Net.Services
             Reconfigure(config);
         }
 
-        public virtual string EvaluateJs(string js, int timeoutMs = 200) {
+        public virtual string EvaluateJs(string js, int timeoutMs = 200)
+        {
             var engine = GetEngine(timeoutMs);
             if (engine is null)
                 throw new AcquireJavaScriptEngineTimeoutException($"Could not acquire engine within {timeoutMs}ms");
             return engine.EvaluateAndRelease(js);
         }
 
-        public virtual string EvaluateJsAsync(string js, string resultVariableName, int asyncTimeoutMs = 200, int timeoutMs = 200)
+        public virtual async Task<string> EvaluateJsAsync(string js, string executionId, int asyncTimeoutMs = 200, int timeoutMs = 200)
         {
+            if (!SupportAsync)
+                throw new InvalidOperationException($"This engine pool does not support async scripts. Reconfigure " +
+                    $"it with {nameof(JavaScriptEnginePoolConfig)}.{nameof(JavaScriptEnginePoolConfig.WithAsync)}()");
             var engine = GetEngine(timeoutMs);
             if (engine is null)
                 throw new AcquireJavaScriptEngineTimeoutException($"Could not acquire engine within {timeoutMs}ms");
-            var result = engine.EvaluateAsyncAndRelease(js, resultVariableName, asyncTimeoutMs);
+            var result = await engine.EvaluateAsyncAndRelease(js, executionId, asyncTimeoutMs);
             if (!string.IsNullOrEmpty(result))
                 return result;
             throw new Exception($"Could not evaluate async result within {asyncTimeoutMs}ms");
@@ -53,17 +59,14 @@ namespace SSR.Net.Services
         protected virtual JavaScriptEngine GetEngine(int timeoutMs)
         {
             var sw = Stopwatch.StartNew();
-            while (sw.ElapsedMilliseconds < timeoutMs)
-            {
-                lock (Lock)
-                {
+            while (sw.ElapsedMilliseconds < timeoutMs) {
+                lock (Lock) {
                     RemoveDepletedEngines();
                     ThrowExceptionIfInitializationFailed();
                     RefillToMinEngines();
                     EnsureEnoughStandbyEngines();
                     var engine = TryToFindReadyEngine();
-                    if (engine != null)
-                    {
+                    if (engine != null) {
                         var result = engine.Lease();
                         EnsureEnoughStandbyEngines();//We ensure that there are enough standby engines after the lease
                         return result;
@@ -112,8 +115,7 @@ namespace SSR.Net.Services
         {
             var builtConfig = config(new JavaScriptEnginePoolConfig());
             builtConfig.Validate();
-            lock (Lock)
-            {
+            lock (Lock) {
                 Engines.Where(e => !e.IsLeased).ToList().ForEach(e => { Engines.Remove(e); e.Dispose(); });
                 Engines.ForEach(e => e.SetDepleted());
                 MaxUsages = builtConfig.MaxUsages;
@@ -123,6 +125,7 @@ namespace SSR.Net.Services
                 StandbyEngineCount = builtConfig.StandbyEngineCount;
                 GarbageCollectionInterval = builtConfig.GarbageCollectionInterval;
                 ReconfigureTimeoutMs = builtConfig.ReconfigureTimeoutMs;
+                SupportAsync = builtConfig.SupportAsync;
                 BundleNumber++;
                 for (int i = 0; i < MinEngines; ++i)
                     AddNewJsEngine();
@@ -149,12 +152,11 @@ namespace SSR.Net.Services
         }
 
         protected virtual void AddNewJsEngine() =>
-            Engines.Add(new JavaScriptEngine(() =>
-            {
+            Engines.Add(new JavaScriptEngine(() => {
                 var jsEngine = JsEngineSwitcher.CreateDefaultEngine();
                 Scripts.ForEach(jsEngine.Execute);
                 return jsEngine;
-            }, MaxUsages, GarbageCollectionInterval, BundleNumber));
+            }, MaxUsages, GarbageCollectionInterval, BundleNumber, SupportAsync));
 
         public virtual JavaScriptEnginePoolStats GetStats() =>
             new JavaScriptEnginePoolStats

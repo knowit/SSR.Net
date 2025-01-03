@@ -9,6 +9,7 @@ namespace SSR.Net.Services
         public int MaxEngines { get; private set; } = 25;
         public int MinEngines { get; private set; } = 5;
         public int MaxUsages { get; private set; } = 100;
+        public bool SupportAsync { get; private set; } = false;
         public int GarbageCollectionInterval { get; private set; } = 20;
         public int StandbyEngineCount { get; private set; } = 3;
         public int ReconfigureTimeoutMs { get; private set; } = 2000;
@@ -52,6 +53,12 @@ namespace SSR.Net.Services
         public JavaScriptEnginePoolConfig WithStandbyEngineCount(int standbyEngineCount)
         {
             StandbyEngineCount = standbyEngineCount;
+            return this;
+        }
+
+        public JavaScriptEnginePoolConfig WithAsync(bool withAsync = true)
+        {
+            SupportAsync = withAsync;
             return this;
         }
 
