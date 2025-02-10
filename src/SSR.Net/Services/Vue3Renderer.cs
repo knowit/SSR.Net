@@ -1,4 +1,5 @@
 using SSR.Net.Exceptions;
+using SSR.Net.Extensions;
 using SSR.Net.Models;
 using System;
 using System.Threading.Tasks;
@@ -25,7 +26,8 @@ namespace SSR.Net.Services
                                                  string propsAsJson,
                                                  int waitForEngineTimeoutMs = 50,
                                                  bool fallbackToClientSideRender = true,
-                                                 int asyncTimeoutMs = 200)
+                                                 int asyncTimeoutMs = 200,
+                                                 bool sanitize = true)
         {
             var result = new RenderedComponent();
             var id = CreateExecutionId();
@@ -44,10 +46,13 @@ namespace SSR.Net.Services
                 return RenderComponentCSR(componentName, propsAsJson);
             result.Html = html;
             result.InitScript = string.Format(ClientHydrateScript, componentName, propsAsJson, id);
+            if (sanitize)
+                result.InitScript = result.InitScript.SanitizeInitScript();
             return result;
         }
 
-        private RenderedComponent FallbackToCSRWithException(string componentName, string propsAsJson, Exception ex) {
+        private RenderedComponent FallbackToCSRWithException(string componentName, string propsAsJson, Exception ex)
+        {
             var result = RenderComponentCSR(componentName, propsAsJson);
             if (ex is AcquireJavaScriptEngineTimeoutException timeoutException)
                 result.TimeoutException = timeoutException;
@@ -59,14 +64,17 @@ namespace SSR.Net.Services
         private static string CreateExecutionId() =>
             "vue_" + Guid.NewGuid().ToString().Replace("-", "");
 
-        public RenderedComponent RenderComponentCSR(string componentName, string propsAsJson)
+        public RenderedComponent RenderComponentCSR(string componentName, string propsAsJson, bool sanitize = true)
         {
             var id = CreateExecutionId();
-            return new RenderedComponent
+            var result = new RenderedComponent
             {
                 Html = string.Format(CSRHtml, id),
                 InitScript = string.Format(ClientRenderScript, componentName, propsAsJson, id)
             };
+            if (sanitize)
+                result.InitScript = result.InitScript.SanitizeInitScript();
+            return result;
         }
     }
 }

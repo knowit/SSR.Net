@@ -1,4 +1,5 @@
 ﻿using SSR.Net.Exceptions;
+using SSR.Net.Extensions;
 using SSR.Net.Models;
 using System;
 
@@ -20,30 +21,33 @@ namespace SSR.Net.Services
         public RenderedComponent RenderComponent(string componentName,
                                                  string propsAsJson,
                                                  int waitForEngineTimeoutMs = 50,
-                                                 bool fallbackToClientSideRender = true)
+                                                 bool fallbackToClientSideRender = true,
+                                                 bool sanitize = true)
         {
             var result = new RenderedComponent();
             var id = CreateId();
             var script = string.Format(SSREngineScript, componentName, propsAsJson);
             string html = null;
-            try
-            {
+            try {
                 html = _javaScriptEnginePool.EvaluateJs(script, waitForEngineTimeoutMs);
             }
             catch (Exception ex) {
                 if (!fallbackToClientSideRender)
                     throw ex;
-                return FallbackToCSRWithException(componentName, propsAsJson, ex);
+                return FallbackToCSRWithException(componentName, propsAsJson, ex, sanitize);
             }
             if (html is null)
-                return RenderComponentCSR(componentName, propsAsJson);
+                return RenderComponentCSR(componentName, propsAsJson, sanitize);
             result.Html = string.Format(SSRHtml, id, html);
             result.InitScript = string.Format(ClientHydrateScript, id, componentName, propsAsJson);
+            if (sanitize)
+                result.InitScript = result.InitScript.SanitizeInitScript();
             return result;
         }
 
-        private RenderedComponent FallbackToCSRWithException(string componentName, string propsAsJson, Exception ex) {
-            var result = RenderComponentCSR(componentName, propsAsJson);
+        private RenderedComponent FallbackToCSRWithException(string componentName, string propsAsJson, Exception ex, bool sanitize)
+        {
+            var result = RenderComponentCSR(componentName, propsAsJson, sanitize);
             if (ex is AcquireJavaScriptEngineTimeoutException timeoutException)
                 result.TimeoutException = timeoutException;
             else
@@ -51,14 +55,17 @@ namespace SSR.Net.Services
             return result;
         }
 
-        public RenderedComponent RenderComponentCSR(string componentName, string propsAsJson)
+        public RenderedComponent RenderComponentCSR(string componentName, string propsAsJson, bool sanitize = true)
         {
             var id = CreateId();
-            return new RenderedComponent
+            var result = new RenderedComponent
             {
                 Html = string.Format(CSRHtml, id),
                 InitScript = string.Format(ClientRenderScript, id, componentName, propsAsJson)
             };
+            if (sanitize)
+                result.InitScript = result.InitScript.SanitizeInitScript();
+            return result;
         }
 
         private static string CreateId() =>
