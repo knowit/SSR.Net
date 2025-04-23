@@ -19,8 +19,18 @@ namespace SSR.Net.Services
             ".then(html => " + nameof(SSRNetResultCallback) + ".SetHtml('{2}','<div id={3}>' + html + '</div>'))" +
             ".catch(err => " + nameof(SSRNetResultCallback) + ".SetError('{2}','Error ' + err))";//componentName, propsAsJson, executionId, containerId
 
-        private const string ClientHydrateScript = "createSSRApp({0}, {1}).mount({2})";//componentName, propsAsJson, id
-        private const string ClientRenderScript = "createApp({0}, {1}).mount({2})";//id, componentName, propsAsJson
+        private const string ClientHydrateScript = "createSSRApp({0}, {1}){2}.mount({3})";//componentName, propsAsJson, ClientSideInjections, id
+        private const string ClientRenderScript = "createApp({0}, {1}){2}.mount({3})";//id, componentName, ClientSideInjections, propsAsJson
+        private string ClientSideInjections = "";
+
+        /// <summary>
+        /// This makes it possible to inject functionality to an app before it is mounted. This will be rendered just before .mount("#app"). If you want
+        /// to add a store that is available in a JavaScript variable named 'store' on the client side, then you would call this function with the string
+        /// ".use(store)". This would render createApp(...arguments...).use(store).mount(...mount-point...)
+        /// </summary>
+        /// <param name="clientSideInjections"></param>
+        public void SetClientSideInjections(string clientSideInjections) =>
+            ClientSideInjections = clientSideInjections ?? "";
 
         public async Task<RenderedComponent> RenderComponentAsync(string componentName,
                                                  string propsAsJson,
@@ -45,7 +55,7 @@ namespace SSR.Net.Services
             if (html is null)
                 return RenderComponentCSR(componentName, propsAsJson);
             result.Html = html;
-            result.InitScript = string.Format(ClientHydrateScript, componentName, propsAsJson, id);
+            result.InitScript = string.Format(ClientHydrateScript, componentName, propsAsJson, ClientSideInjections ?? "", id);
             if (sanitize)
                 result.InitScript = result.InitScript.SanitizeInitScript();
             return result;
@@ -70,7 +80,7 @@ namespace SSR.Net.Services
             var result = new RenderedComponent
             {
                 Html = string.Format(CSRHtml, id),
-                InitScript = string.Format(ClientRenderScript, componentName, propsAsJson, id)
+                InitScript = string.Format(ClientRenderScript, componentName, propsAsJson, ClientSideInjections, id)
             };
             if (sanitize)
                 result.InitScript = result.InitScript.SanitizeInitScript();
